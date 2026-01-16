@@ -1,0 +1,52 @@
+
+  {% block head %}<script>
+  setTimeout(() => {
+    document.querySelectorAll(".alert").forEach(el => el.remove());
+  }, 2000); // 5 seconds
+</script> {% endblock head %}
+
+{% if messages %}
+  <div class="space-y-3 mb-6">
+    {% for message in messages %}
+
+      {% if message.tags == "success" %}
+        <div class="alert alert-success shadow-sm flex items-start gap-3">
+          <i data-lucide="check-circle" class="w-5 h-5 mt-0.5"></i>
+          <div>
+            <h3 class="font-semibold capitalize">{{ message.tags }}</h3>
+            <p class="text-sm opacity-90">{{ message }}</p>
+          </div>
+        </div>
+
+      {% elif message.tags == "error" %}
+        <div class="alert alert-error shadow-sm flex items-start gap-3">
+          <i data-lucide="x-circle" class="w-5 h-5 mt-0.5"></i>
+          <div>
+            <h3 class="font-semibold capitalize">{{ message.tags }}</h3>
+            <p class="text-sm opacity-90">{{ message }}</p>
+          </div>
+        </div>
+
+      {% elif message.tags == "warning" %}
+        <div class="alert alert-warning shadow-sm flex items-start gap-3">
+          <i data-lucide="alert-triangle" class="w-5 h-5 mt-0.5"></i>
+          <div>
+            <h3 class="font-semibold capitalize">{{ message.tags }}</h3>
+            <p class="text-sm opacity-90">{{ message }}</p>
+          </div>
+        </div>
+
+      {% else %}
+        <div class="alert alert-info shadow-sm flex items-start gap-3">
+          <i data-lucide="info" class="w-5 h-5 mt-0.5"></i>
+          <div>
+            <h3 class="font-semibold capitalize">{{ message.tags }}</h3>
+            <p class="text-sm opacity-90">{{ message }}</p>
+          </div>
+        </div>
+
+      {% endif %}
+
+    {% endfor %}
+  </div>
+{% endif %}

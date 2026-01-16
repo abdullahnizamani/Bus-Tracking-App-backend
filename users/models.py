@@ -1,19 +1,26 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-# from transport.models import Bus
 # Create your models here.
+import uuid, os
+def avatar_upload_path(instance, filename):
+    ext = filename.split('.')[-1]
+    return os.path.join(
+        'profiles',
+        f"{uuid.uuid4()}.{ext}"
+    )
+
 
 class User(AbstractUser):
-    avatar = models.ImageField(default='avatar.svg', upload_to='profiles/')
+    avatar = models.ImageField(default='avatar.svg', upload_to=avatar_upload_path)
     ROLE_CHOICES = [
         ('student', 'Student'),
         ('driver', 'Driver'),
         ('admin', 'Admin'),
     ]
-
     role = models.CharField(max_length=10, choices=ROLE_CHOICES)
     def __str__(self):
-        return self.login_id
+        return self.username
+    
 class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     student_id = models.CharField(null=False, max_length=200)

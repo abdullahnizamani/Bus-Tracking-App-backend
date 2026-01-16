@@ -1,0 +1,164 @@
+
+
+
+<!-- Sidebar -->
+
+
+<aside class="relative w-72 min-h-screen bg-base-200 border-r border-base-300">
+  <!-- Brand -->
+  <div class="p-5 flex items-center gap-3">
+    <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-content font-bold">
+      BT
+    </div>
+    <div>
+      <h1 class="text-lg font-semibold">Bus Tracker</h1>
+      <p class="text-xs opacity-60">Admin Dashboard</p>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+<ul class="menu px-4 gap-1">
+
+  <li class="menu-title">
+    <span>Overview</span>
+  </li>
+
+  <li>
+    <a class="active flex items-center gap-3" href="{% url 'dashboard' %}">
+      <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+      Dashboard
+    </a>
+  </li>
+
+  <li>
+    <a class="flex items-center gap-3">
+      <i data-lucide="map" class="w-5 h-5"></i>
+      Live Map
+      <span class="badge badge-sm badge-primary ml-auto">LIVE</span>
+    </a>
+  </li>
+
+  <li class="menu-title mt-4">
+    <span>Management</span>
+  </li>
+
+  <li>
+    <a class="flex items-center gap-3" href="{% url 'buses' %}">
+      <i data-lucide="bus" class="w-5 h-5"></i>
+      Buses
+    </a>
+  </li>
+
+  <li>
+    <a class="flex items-center gap-3">
+      <i data-lucide="route" class="w-5 h-5"></i>
+      Routes
+    </a>
+  </li>
+
+  <li>
+    <a class="flex items-center gap-3">
+      <i data-lucide="clock" class="w-5 h-5"></i>
+      Schedules
+    </a>
+  </li>
+
+  <li>
+    <a class="flex items-center gap-3">
+      <i data-lucide="user" class="w-5 h-5"></i>
+      Drivers
+    </a>
+  </li>
+
+  <li class="menu-title mt-4">
+    <span>System</span>
+  </li>
+
+  <li>
+    <a class="flex items-center gap-3">
+      <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+      Incidents
+      <span class="badge badge-sm badge-error ml-auto">3</span>
+    </a>
+  </li>
+
+  <li>
+    <a class="flex items-center gap-3">
+      <i data-lucide="scroll-text" class="w-5 h-5"></i>
+      Logs
+    </a>
+  </li>
+
+  <li>
+    <a class="flex items-center gap-3">
+      <i data-lucide="settings" class="w-5 h-5"></i>
+      Settings
+    </a>
+  </li>
+
+</ul>
+
+
+  <!-- Footer -->
+<div class="absolute bottom-0 w-full border-t border-base-300">
+  <div class="dropdown dropdown-top w-full">
+
+    <!-- Trigger -->
+    <div
+      tabindex="0"
+      role="button"
+      class="flex items-center gap-3 p-4 cursor-pointer hover:bg-base-300 transition"
+    >
+      <div class="avatar">
+        <div class="w-10 rounded-full">
+          <img
+            alt="{{ request.user.first_name }}'s profile picture"
+            src="{{ request.user.avatar.url }}"
+          />
+        </div>
+      </div>
+
+      <div class="text-sm flex-1">
+        <p class="font-medium truncate">{{ request.user.username }}</p>
+        <p class="opacity-60 truncate">{{ request.user.email }}</p>
+      </div>
+
+      <!-- Chevron -->
+      <i data-lucide="chevron-up" class="w-4 h-4 opacity-60"></i>
+    </div>
+
+    <!-- Dropdown -->
+    <ul
+      tabindex="0"
+      class="menu menu-sm dropdown-content bg-base-100 rounded-box shadow z-50 mb-2 w-52"
+    >
+      <li class="menu-title">
+        <span>Account</span>
+      </li>
+
+      <li>
+        <a href="/dashboard/profile/">
+          <i data-lucide="user" class="w-4 h-4"></i>
+          Profile
+        </a>
+      </li>
+
+      <li>
+        <a href="/dashboard/settings/">
+          <i data-lucide="settings" class="w-4 h-4"></i>
+          Settings
+        </a>
+      </li>
+
+      <li class="border-t border-base-200">
+        <a href="/dashboard/logout/" class="text-error">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+          Logout
+        </a>
+      </li>
+    </ul>
+
+  </div>
+</div>
+
+</aside>

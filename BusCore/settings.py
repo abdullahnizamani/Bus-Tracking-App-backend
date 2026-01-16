@@ -76,7 +76,7 @@ ROOT_URLCONF = 'BusCore.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR/ 'dashboard/transport'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+{% load static %}
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %} {% endblock title %}</title>
+    <link href="{% static 'css/output.css' %}" rel="stylesheet" type="text/css">
+  {% block head %} {% endblock head %}
+<script src="https://unpkg.com/lucide@latest" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => {
+    lucide.createIcons();
+  });
+</script>
+
+</head>
+<body>
+    {% if messages %}
+{% include "alerts.html" %}
+
+{% endif %}
+<div class="flex min-h-screen">
+
+
+{% if request.user.is_authenticated %}
+ <!-- {% include 'navbar.html' %} -->
+ {% include 'navbar2.html' %}
+
+{% endif %}
+
+<main class="p-4 min-h-screen">
+    {% block main %}{% endblock main %}
+</main>
+</div>
+    
+</body>
+</html>
