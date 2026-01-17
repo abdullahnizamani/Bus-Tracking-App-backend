@@ -1,0 +1,118 @@
+{%extends 'main.html'%}
+
+{% block navbar %}
+{% endblock navbar %}
+
+
+
+{% block title %}Add Bus{% endblock title %}
+
+  {% block head %} 
+
+<script src='https://api.mapbox.com/mapbox-gl-js/v3.18.0/mapbox-gl.js'></script>
+<link href='https://api.mapbox.com/mapbox-gl-js/v3.18.0/mapbox-gl.css' rel='stylesheet' />
+  <link href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.5.0/mapbox-gl-draw.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.5.0/mapbox-gl-draw.js"></script>
+
+{% endblock head %}
+
+{% block main %}
+<main class="p-4 min-h-screen flex justify-center items-start bg-base-100">
+
+  <!-- Form container -->
+  <div class="w-full max-w-lg p-6 bg-base-200 rounded-xl shadow-lg mt-10">
+
+    <!-- Header -->
+    <h1 class="text-2xl font-bold mb-2">Add New Bus</h1>
+    <p class="text-gray-600 mb-6">Fill out the details to add a new bus to the system.</p>
+
+    <!-- Form -->
+    <form method="POST" class="space-y-4" id="bus-form">
+      {% csrf_token %}
+
+      <!-- Bus Name -->
+      <div>
+        <label class="block text-sm font-medium mb-1" for="name">Bus Name</label>
+    {{ form.name }}
+      </div>
+
+      <!-- Registration Number -->
+      <div>
+        <label class="block text-sm font-medium mb-1" for="registration_number">Registration Number</label>
+    {{ form.registration_number }}
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1" for="route_str">Route Path</label>
+        <input type="text" name="route_str" id="route_str" placeholder="Enter Path alphabatically" class="input input-bordered w-full" required />
+      </div>
+
+      <!-- Driver -->
+      <div>
+        <label class="block text-sm font-medium mb-1" for="driver_id">Driver</label>
+    {{ form.driver_id }}
+
+      </div>
+
+      <!-- Capacity -->
+      <div>
+        <label class="block text-sm font-medium mb-1" for="capacity">Capacity</label>
+    {{ form.capacity }}
+      </div>
+
+    <div id='map' class="w-full h-80"></div>
+
+
+      <!-- Buttons -->
+      <div class="flex justify-end gap-2 mt-4">
+        <a href="{% url 'buses' %}" class="btn btn-outline">Cancel</a>
+        <button type="submit" class="btn btn-primary">Add Bus</button>
+      </div>
+
+    </form>
+
+  </div>
+
+</main>
+<script>
+mapboxgl.accessToken = 'pk.eyJ1IjoiYWJkdWxsYWhuaXoiLCJhIjoiY21qeThtem55MDN6djNlc2M0bTA1cmplOCJ9.wzlt4-DFZnmHPdTOcUxr8Q';
+const map = new mapboxgl.Map({
+	container: 'map', // container ID
+	style: 'mapbox://styles/mapbox/streets-v12', // style URL
+	center: [67.079285,24.946631], // starting position [lng, lat]
+	zoom: 9, // starting zoom
+}); 
+
+
+const draw = new MapboxDraw({
+  displayControlsDefault: false,
+  controls: {
+    line_string: true, // Allow drawing lines
+    trash: true
+  }
+});
+map.addControl(draw);
+map.addControl(new mapboxgl.FullscreenControl(), 'top-right');
+
+document.getElementById('bus-form').addEventListener('submit', function(e) {
+  e.preventDefault(); // Stop normal form submission
+
+  const routeData = draw.getAll();
+  if (!routeData.features.length) {
+    alert("Please draw a route before submitting!");
+    return;
+  }
+
+  // Create a hidden input to store coordinates as JSON string
+  let coordsInput = document.createElement('input');
+  coordsInput.type = 'hidden';
+  coordsInput.name = 'coordinates'; // form field name
+  coordsInput.value = JSON.stringify(routeData.features[0].geometry.coordinates);
+
+  this.appendChild(coordsInput); // Add to form
+
+  // Submit the form
+  this.submit();
+});
+
+</script>
+{% endblock main %}
