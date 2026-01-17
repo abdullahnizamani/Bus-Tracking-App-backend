@@ -23,17 +23,18 @@
 {% endif %}
 <div class="flex min-h-screen">
 
-
+{% block navbar %}
 {% if request.user.is_authenticated %}
  <!-- {% include 'navbar.html' %} -->
  {% include 'navbar2.html' %}
 
 {% endif %}
+{% endblock navbar %}
 
-<main class="p-4 min-h-screen">
+<main class="flex-1 w-full p-4 min-h-screen">
     {% block main %}{% endblock main %}
 </main>
-</div>
+
     
 </body>
 </html>

@@ -2,9 +2,14 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
+from django.views.decorators.http import require_POST #
+
 from users.serializers import LoginSerializer
-from users.models import User
+from users.models import User, Driver
+from transport.models import Bus, Route
 from django.contrib import messages
+from .forms import BusForm
+import json
 # Create your views here.
 
 @login_required(login_url='login')
@@ -23,7 +28,7 @@ def login_user(request):
         if user is not None:
             login(request, user)
             messages.success(request, "Login successful")
-            return redirect('index')
+            return redirect('dashboard  ')
         else:
             messages.error(request, "Incorrect username or password")
             return redirect('login')
@@ -38,4 +43,41 @@ def logout_user(request):
 
 
 def buses(request):
-    return render(request, 'buses.html')
+    busObj = Bus.objects.all()
+    return render(request, 'buses.html', {"busObj":busObj})
+
+def add_bus(request):
+    if request.method == 'POST':
+        form = BusForm(request.POST)
+        route_json = request.POST.get('coordinates')  # JSON from Mapbox
+        route_str = request.POST.get('route_str')      # Optional: descriptive route string
+        if form.is_valid():
+            bus = form.save()
+            Route.objects.create(
+                    bus=bus,
+                    path=json.loads(route_json),
+                    route_str=route_str
+                )
+        return redirect('buses')
+    else:
+        form = BusForm()
+        return render(request, "add_bus.html", {"form": form})
+    
+@require_POST
+def delete_bus(request):
+        id = request.POST.getlist('checkbox-delete')
+        if not id:
+            messages.error(request, "No buses selected")
+
+            return redirect('buses')
+        else:
+            deleted_objs, details= Bus.objects.filter(id__in=id).delete()
+            buses_deleted = details.get(Bus, 0)
+
+            if buses_deleted >= 1:
+                messages.success(request, f'Successfully deleted {buses_deleted} buses')
+                return redirect('buses')
+            else:
+                messages.error(request, "there was an error deleting the buses")
+
+                return redirect('buses')
