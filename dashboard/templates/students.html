@@ -90,14 +90,13 @@
                         <th>Student ID</th>
                         <th>Email</th>
                         <th>Bus Assignment</th>
-                        <th>Status</th>
                         <th class="text-right">Actions</th>
                     </tr>
                 </thead>
 
                 <tbody>
 
-                    <tr>
+                    <!-- <tr>
                         <td>Ali Khan</td>
                         <td>CS-2021-045</td>
                         <td>ali.khan@example.com</td>
@@ -119,26 +118,7 @@
                         </td>
                     </tr>
 
-                    <tr>
-                        <td>Sara Ahmed</td>
-                        <td>PHY-2022-011</td>
-                        <td>sara.ahmed@example.com</td>
-                        <td>Physics</td>
-                        <td>
-                            <span class="badge badge-error">Inactive</span>
-                        </td>
-                        <td class="text-right">
-                            <div class="dropdown dropdown-end">
-                                <button class="btn btn-ghost btn-sm">
-                                    <i data-lucide="more-vertical" class="w-4 h-4"></i>
-                                </button>
-                                <ul class="menu menu-sm dropdown-content bg-base-100 rounded-box shadow w-44">
-                                    <li><a>View</a></li>
-                                    <li><a>Enable</a></li>
-                                </ul>
-                            </div>
-                        </td>
-                    </tr>
+ -->
 
                 </tbody>
             </table>
@@ -150,14 +130,71 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", async function () {
-        const api = 'http://127.0.0.1:8000/api/users/driver';
+const api = "{% url 'users' 'student' %}";
+        const tableBody = document.querySelector('tbody');
         try {
             const response = await fetch(api);
             if (!response.ok) {
                 throw new Error(`Response status: ${response.status}`);
             }
             const result = await response.json();
-            console.log(result);
+            result.forEach(element => {
+
+                const row = document.createElement('tr');
+                const nameCell = document.createElement('td');
+                nameCell.textContent = element.first_name + ' ' + element.last_name;
+                const idCell = document.createElement('td');
+                idCell.textContent = element.student.student_id;
+                const emailCell = document.createElement('td');
+                emailCell.textContent = element.email;
+                const BusCell = document.createElement('td');
+                BusCell.textContent = element.student.bus_id;
+
+
+                const actionsCell = document.createElement('td');
+                actionsCell.className = "text-right";
+
+                const actionsDiv = document.createElement('div');
+                actionsDiv.className = "dropdown dropdown-end ";
+
+                const actionsButton = document.createElement('button');
+                actionsButton.className = "btn btn-ghost btn-sm";
+                                                    // <i data-lucide="more-vertical" class="w-4 h-4"></i>
+                const actionsButtonIco = document.createElement('i');
+                actionsButtonIco.setAttribute("data-lucide", "more-vertical");
+                actionsButtonIco.classList.add("w-4", "h-4");
+                actionsButton.setAttribute("tabindex", "0");
+                actionsButton.setAttribute("role", "button");
+
+                actionsButton.append(actionsButtonIco)
+
+                const ul = document.createElement('ul');
+                ul.className = "menu menu-sm dropdown-content bg-base-100 rounded-box shadow w-44";
+                const li1 = document.createElement('li');
+                const a1 = document.createElement('a');
+                a1.textContent = "View";
+
+                li1.append(a1);
+                const li2 = document.createElement('li');
+                const a2 = document.createElement('a');
+                a2.textContent = "Disable";
+
+                li2.append(a2);
+                const li3 = document.createElement('li');
+                const a3 = document.createElement('a');
+                a3.textContent = "Reset Password";
+
+                li3.append(a3);
+                ul.append(li1, li2, li3);
+                actionsDiv.append(actionsButton, ul);
+                actionsCell.append(actionsDiv);
+                
+                row.append(nameCell, idCell, emailCell, BusCell, actionsCell);
+                tableBody.append(row);
+
+            });
+            lucide.createIcons();
+
         } catch (error) {
             console.log(error);
         }

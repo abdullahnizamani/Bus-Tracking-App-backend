@@ -1,11 +1,28 @@
 from rest_framework import serializers
-from .models import User
+from .models import User, Driver, Student
 from knox import views as knox_views
 from django.contrib.auth import authenticate
+
+
+class DriverSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Driver
+        fields = ['employee_id', 'license_id']
+
+class StudentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Student
+        fields = ['student_id', 'bus_id']
+
 class UserSerializer(serializers.ModelSerializer):
+    driver = DriverSerializer(read_only=True)
+    student = StudentSerializer(read_only=True)
+
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'first_name', 'last_name')
+        fields = ('id', 'username', 'first_name', 'last_name', 'email', 'role', 'driver', 'student')
+
+
 
 class LoginSerializer(serializers.ModelSerializer):
     username = serializers.CharField(style={'input_type': 'username'}, trim_whitespace=False)
