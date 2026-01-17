@@ -11,5 +11,6 @@ urlpatterns = [
     # path('auth/', include('knox.urls')), # Includes knox login/logout views
     path('login/', views.login_view),
     path('logout/', views.logout_view),
+    path('users/<str:role>', views.users, name='users'),
 
 ]

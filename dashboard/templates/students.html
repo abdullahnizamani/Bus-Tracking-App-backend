@@ -1,0 +1,168 @@
+{% extends "main.html" %}
+
+{% block title %}Students{% endblock title %}
+
+{% block main %}
+
+<div class="space-y-6">
+
+    <!-- Page Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-semibold">Students</h1>
+            <p class="text-sm opacity-60">Manage student accounts</p>
+        </div>
+
+        <button class="btn btn-primary">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            Add Student
+        </button>
+    </div>
+
+    <!-- Filters -->
+    <!-- <div class="card bg-base-200/40">
+    <div class="card-body p-4">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 ">
+
+        <input
+          type="text"
+          placeholder="Search by name or ID"
+          class="input input-bordered w-full"
+        />
+
+        <select class="select select-bordered w-full">
+          <option disabled selected>Department</option>
+          <option>Computer Science</option>
+          <option>Physics</option>
+          <option>Mathematics</option>
+        </select>
+
+        <select class="select select-bordered w-full">
+          <option disabled selected>Status</option>
+          <option>Active</option>
+          <option>Inactive</option>
+        </select>
+
+        <button class="btn btn-outline w-full">
+          Apply
+        </button>
+
+      </div>
+    </div>
+  </div> -->
+    <!-- Filters Toolbar -->
+    <div class="flex flex-col md:flex-row md:items-center gap-3">
+
+        <input type="text" placeholder="Search name / ID" class="input input-sm input-bordered w-full md:w-64" />
+
+        <select class="select select-sm select-bordered w-full md:w-52">
+            <option disabled selected>Department</option>
+            <option>Computer Science</option>
+            <option>Physics</option>
+            <option>Mathematics</option>
+        </select>
+
+        <select class="select select-sm select-bordered w-full md:w-40">
+            <option disabled selected>Status</option>
+            <option>Active</option>
+            <option>Inactive</option>
+        </select>
+
+        <div class="md:ml-auto flex gap-2">
+            <button id="reset" type="reset" class="btn btn-sm btn-ghost">
+                Reset
+            </button>
+            <button class="btn btn-sm btn-outline">
+                Apply
+            </button>
+        </div>
+
+    </div>
+
+    <!-- Students Table -->
+    <div class="card bg-base-100 shadow-sm">
+        <div class="overflow-x-auto">
+
+            <table class="table table-zebra w-full">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Student ID</th>
+                        <th>Email</th>
+                        <th>Bus Assignment</th>
+                        <th>Status</th>
+                        <th class="text-right">Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    <tr>
+                        <td>Ali Khan</td>
+                        <td>CS-2021-045</td>
+                        <td>ali.khan@example.com</td>
+                        <td>Computer Science</td>
+                        <td>
+                            <span class="badge badge-success">Active</span>
+                        </td>
+                        <td class="text-right">
+                            <div class="dropdown dropdown-end">
+                                <button class="btn btn-ghost btn-sm">
+                                    <i data-lucide="more-vertical" class="w-4 h-4"></i>
+                                </button>
+                                <ul class="menu menu-sm dropdown-content bg-base-100 rounded-box shadow w-44">
+                                    <li><a>View</a></li>
+                                    <li><a>Disable</a></li>
+                                    <li><a>Reset Password</a></li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>Sara Ahmed</td>
+                        <td>PHY-2022-011</td>
+                        <td>sara.ahmed@example.com</td>
+                        <td>Physics</td>
+                        <td>
+                            <span class="badge badge-error">Inactive</span>
+                        </td>
+                        <td class="text-right">
+                            <div class="dropdown dropdown-end">
+                                <button class="btn btn-ghost btn-sm">
+                                    <i data-lucide="more-vertical" class="w-4 h-4"></i>
+                                </button>
+                                <ul class="menu menu-sm dropdown-content bg-base-100 rounded-box shadow w-44">
+                                    <li><a>View</a></li>
+                                    <li><a>Enable</a></li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", async function () {
+        const api = 'http://127.0.0.1:8000/api/users/driver';
+        try {
+            const response = await fetch(api);
+            if (!response.ok) {
+                throw new Error(`Response status: ${response.status}`);
+            }
+            const result = await response.json();
+            console.log(result);
+        } catch (error) {
+            console.log(error);
+        }
+
+    });
+</script>
+
+{% endblock main %}

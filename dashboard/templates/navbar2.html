@@ -80,7 +80,7 @@
 
     <ul class="menu menu-sm ml-6 mt-1">
       <li>
-        <a href="" class="flex items-center gap-3">
+        <a href="{% url 'students' %}" class="flex items-center gap-3">
           <i data-lucide="graduation-cap" class="w-4 h-4"></i>
           Students
         </a>
@@ -92,13 +92,14 @@
           Drivers
         </a>
       </li>
-
+      {% if request.user.is_superuser %}
       <li>
         <a href="" class="flex items-center gap-3">
           <i data-lucide="shield" class="w-4 h-4"></i>
           Admins
         </a>
       </li>
+      {% endif %}
     </ul>
   </details>
 </li>
@@ -106,12 +107,12 @@
 
 
 
-    <li>
+    <!-- <li>
       <a class="flex items-center gap-3">
         <i data-lucide="user" class="w-5 h-5"></i>
         Drivers
       </a>
-    </li>
+    </li> -->
 
     <li class="menu-title mt-4">
       <span>System</span>

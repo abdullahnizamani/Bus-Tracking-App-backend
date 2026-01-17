@@ -1,9 +1,9 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.http import require_POST #
-
+from django.db.models import Q
 from users.serializers import LoginSerializer
 from users.models import User, Driver
 from transport.models import Bus, Route
@@ -28,7 +28,7 @@ def login_user(request):
         if user is not None:
             login(request, user)
             messages.success(request, "Login successful")
-            return redirect('dashboard  ')
+            return redirect('dashboard')
         else:
             messages.error(request, "Incorrect username or password")
             return redirect('login')
@@ -72,8 +72,7 @@ def delete_bus(request):
             return redirect('buses')
         else:
             deleted_objs, details= Bus.objects.filter(id__in=id).delete()
-            buses_deleted = details.get(Bus, 0)
-
+            buses_deleted = details.get('transport.Bus', 0)
             if buses_deleted >= 1:
                 messages.success(request, f'Successfully deleted {buses_deleted} buses')
                 return redirect('buses')
@@ -81,3 +80,14 @@ def delete_bus(request):
                 messages.error(request, "there was an error deleting the buses")
 
                 return redirect('buses')
+            
+
+
+def students(request):
+    return render(request, 'students.html')
+
+# @login_required
+# def users(request, role):
+#     obj = User.objects.filter(role=role).values('id', 'first_name', 'last_name', 'email')
+#     return JsonResponse({'users': list(obj)})
+
