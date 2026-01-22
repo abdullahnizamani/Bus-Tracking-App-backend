@@ -9,8 +9,12 @@ urlpatterns = [
     # path('index/', views.index, name='index'),
     # path('login/', views.obtain_auth_token),
     # path('auth/', include('knox.urls')), # Includes knox login/logout views
-    path('login/', views.login_view),
-    path('logout/', views.logout_view),
-    path('users/<str:role>', views.users, name='users'),
-
+    path('auth/login/', views.login_view),
+    path('auth/logout/', views.logout_view),
+    path('auth/users/<str:role>', views.users, name='users'),
+    path('auth/me/', views.me_view, name='me'),
+    path("student/bus/", views.student_bus_view, name="student-bus"),
+    path("driver/bus/", views.driver_bus_view, name="driver-bus"),
+    path("buses/<int:id>/", views.bus_info, name="buses"),
+    path("buses_info/", views.bus_list, name="buses_list"),
 ]

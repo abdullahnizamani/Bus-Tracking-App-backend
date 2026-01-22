@@ -18,6 +18,7 @@ class User(AbstractUser):
         ('admin', 'Admin'),
     ]
     role = models.CharField(max_length=10, choices=ROLE_CHOICES)
+    phone = models.CharField(max_length=11, default='')
     def __str__(self):
         return self.username
     
@@ -32,6 +33,6 @@ class Driver(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='driver')
     employee_id = models.CharField(null=False, max_length=200)
     license_id = models.CharField(null=False, max_length=200)
-
+    
     def __str__(self):
         return f"{self.user.first_name} ({self.license_id})"

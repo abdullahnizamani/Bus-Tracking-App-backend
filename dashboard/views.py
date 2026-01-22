@@ -10,11 +10,16 @@ from transport.models import Bus, Route
 from django.contrib import messages
 from .forms import BusForm
 import json
+
 # Create your views here.
 
 @login_required(login_url='login')
 def index(request):
-    return render(request, 'index.html')
+    student_count = User.objects.filter(role="student").count()
+    driver_count = User.objects.filter(role="driver").count()
+    buses_count = Bus.objects.count()
+    ctx = {"student_count":student_count, "driver_count":driver_count, "buses_count":buses_count}
+    return render(request, 'index.html', ctx)
 
 def login_user(request):
     if request.method == 'POST':
@@ -85,6 +90,20 @@ def delete_bus(request):
 
 def students(request):
     return render(request, 'students.html')
+
+
+
+def add_student(request):
+    return render(request, 'add_student.html')
+
+
+
+def drivers(request):
+    drivers = Driver.objects.select_related('user')
+
+    ctx = {'drivers':drivers}
+    return render(request, 'drivers.html', ctx)
+
 
 # @login_required
 # def users(request, role):

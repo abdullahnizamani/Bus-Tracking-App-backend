@@ -63,7 +63,52 @@
             <th class="text-right">Actions</th>
           </tr>
         </thead>
-        <tbody id="students-tbody"></tbody>
+        <tbody id="students-tbody">
+{% if drivers %}
+{% for driver in drivers %}
+<tr>
+  <th>
+    <input type="checkbox" class="checkbox rowCheck" data-index="0" />
+  </th>
+  <td>
+    <div class="flex items-center gap-3">
+      <div class="avatar">
+        <div class="mask mask-squircle w-11">
+          <img src="{{ driver.user.avatar.url}}" alt="Avatar" />
+        </div>
+      </div>
+      <div>
+        <div class="font-bold">{{ driver.user.first_name }}</div>
+        <div class="text-sm opacity-50">{{ driver.license_id }}</div>
+      </div>
+    </div>
+  </td>
+  <td class="text-sm">{{driver.user.email}}</td>
+  <td>
+    {% if driver.bus_id %}
+    <span class="badge badge-info">{{ driver.bus_id}}</span>
+    {% else %}
+    <span class="text-gray-400">Unassigned</span>
+    {% endif %}
+  </td>
+  <td>+1 234 567 890</td>
+  <td class="text-right space-x-1">
+    <button class="btn btn-square w-8 h-8 tooltip" data-tip="View">
+      <i data-lucide="eye" class="w-4 h-4"></i>
+    </button>
+    <button class="btn btn-square w-8 h-8 tooltip delete-single" data-index="0" data-tip="Delete">
+      <i data-lucide="trash-2" class="w-4 h-4 text-error"></i>
+    </button>
+    <button class="btn btn-square w-8 h-8 tooltip" data-tip="Reset Password">
+      <i data-lucide="key-round" class="w-4 h-4"></i>
+    </button>
+  </td>
+</tr>
+{% endfor %}
+
+{% endif %}
+
+        </tbody>
         <tfoot>
           <tr>
             <td colspan="100%">
@@ -93,179 +138,7 @@
   </div>
 
 </div>
-
-<!-- <script>
-document.addEventListener("DOMContentLoaded", () => {
-  const API_URL = "{% url 'users' 'student' %}";
-
-  const tbody = document.getElementById("students-tbody");
-  const pageSizeSelect = document.getElementById("pageSize");
-  const prevBtn = document.getElementById("prevPage");
-  const nextBtn = document.getElementById("nextPage");
-  const rangeText = document.getElementById("rangeText");
-  const busSelect = document.getElementById("busSelect");
-  const searchInput = document.getElementById("searchInput");
-  const statusSelect = document.getElementById("statusSelect");
-  const resetBtn = document.getElementById("reset");
-  const selectAll = document.getElementById("selectAll");
-  const selectedCount = document.getElementById("selectedCount");
-
-
-
-  let students = [];
-  let filteredStudents = [];
-  let busMap = {};
-  let currentPage = 1;
-  let pageSize = parseInt(pageSizeSelect.value);
-
-
-selectAll.addEventListener("change", () => {
-  const checkboxes = document.querySelectorAll(".rowCheck");
-  checkboxes.forEach(cb => cb.checked = selectAll.checked);
-  updateSelectedCount();
-});
-
-tbody.addEventListener("change", e => {
-  if (e.target.classList.contains("rowCheck")) {
-    const allChecked = document.querySelectorAll(".rowCheck:checked").length === document.querySelectorAll(".rowCheck").length;
-    selectAll.checked = allChecked;
-    updateSelectedCount();
-  }
-});
-
-function updateSelectedCount() {
-  const count = document.querySelectorAll(".rowCheck:checked").length;
-  selectedCount.textContent = `${count} selected`;
-  document.querySelector(".btn-outline.btn-error").disabled = count === 0;
-}
-
-
-  // Loading skeleton
-  tbody.innerHTML = `
-    <tr><td colspan="6" class="p-6 text-center">
-      <span class="loading loading-dots loading-md"></span>
-    </td></tr>`;
-
-  async function fetchStudents() {
-    const res = await fetch(API_URL);
-    students = await res.json();
-    filteredStudents = [...students];
-    renderTable();
-  }
-
-  async function busPopulate() {
-    const res = await fetch("{% url 'buses_list' %}");
-    const buses = await res.json();
-    buses.forEach(bus => {
-      busMap[bus.id] = bus.name;
-      const option = document.createElement("option");
-      option.value = bus.id;
-      option.textContent = bus.name;
-      busSelect.appendChild(option);
-    });
-  }
-
-  function applyFilters() {
-    const term = searchInput.value.toLowerCase();
-    const bus = busSelect.value;
-    const status = statusSelect.value;
-
-    filteredStudents = students.filter(s => {
-      const name = `${s.first_name} ${s.last_name}`.toLowerCase();
-      const sid = s.student?.student_id?.toLowerCase() || "";
-
-      return (
-        (name.includes(term) || sid.includes(term)) &&
-        (!bus || s.student?.bus_id == bus) &&
-        (!status || (status === "Active" ? s.is_active : !s.is_active))
-      );
-    });
-
-    currentPage = 1;
-    renderTable();
-  }
-
-  function renderTable() {
-    tbody.innerHTML = "";
-
-    const start = (currentPage - 1) * pageSize;
-    const end = start + pageSize;
-    const pageItems = filteredStudents.slice(start, end);
-
-    if (pageItems.length === 0) {
-      tbody.innerHTML = `
-        <tr><td colspan="6" class="py-8 text-center text-sm opacity-60">
-          No students match the current filters
-        </td></tr>`;
-      updateFooter();
-      return;
-    }
-
-    pageItems.forEach(s => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <th><input type="checkbox" class="checkbox rowCheck" /></th>
-        <td>
-          <div class="flex items-center gap-3">
-            <div class="avatar">
-              <div class="mask mask-squircle w-11">
-                <img src="${s.avatar || '/static/img/avatar-placeholder.png'}" />
-              </div>
-            </div>
-            <div>
-              <div class="font-bold">${s.first_name} ${s.last_name}</div>
-              <div class="text-sm opacity-50">${s.student?.student_id ?? "—"}</div>
-            </div>
-          </div>
-        </td>
-        <td class="text-sm">${s.email ?? "—"}</td>
-        <td>${s.student?.bus_id ? `<span class='badge badge-info'>${busMap[s.student.bus_id] ?? 'Unknown'}</span>` : `<span class='text-gray-400'>Unassigned</span>`}</td>
-        <td>${s.phone ?? "—"}</td>
-        <td class="text-right space-x-1">
-          <button class="btn btn-square w-8 h-8 tooltip" data-tip="View"><i data-lucide="eye" class="w-4 h-4"></i></button>
-          <button class="btn btn-square w-8 h-8 tooltip" data-tip="Delete"><i data-lucide="trash-2" class="w-4 h-4 text-error"></i></button>
-          <button class="btn btn-square w-8 h-8 tooltip" data-tip="Reset Password"><i data-lucide="key-round" class="w-4 h-4"></i></button>
-        </td>`;
-      tbody.appendChild(tr);
-    });
-
-    lucide.createIcons();
-    updateFooter();
-  }
-
-  function updateFooter() {
-    const total = filteredStudents.length;
-    const start = Math.min((currentPage - 1) * pageSize + 1, total);
-    const end = Math.min(currentPage * pageSize, total);
-    rangeText.textContent = `Showing ${start}-${end} out of ${total}`;
-    prevBtn.disabled = currentPage === 1;
-    nextBtn.disabled = end >= total;
-  }
-
-  pageSizeSelect.addEventListener("change", () => {
-    pageSize = parseInt(pageSizeSelect.value);
-    currentPage = 1;
-    renderTable();
-  });
-
-  prevBtn.addEventListener("click", () => currentPage > 1 && (currentPage--, renderTable()));
-  nextBtn.addEventListener("click", () => currentPage * pageSize < filteredStudents.length && (currentPage++, renderTable()));
-
-  [searchInput, busSelect, statusSelect].forEach(el => el.addEventListener("input", applyFilters));
-
-  resetBtn.addEventListener("click", () => {
-    searchInput.value = "";
-    busSelect.value = "";
-    statusSelect.value = "";
-    filteredStudents = [...students];
-    currentPage = 1;
-    renderTable();
-  });
-
-  fetchStudents();
-  busPopulate();
-});
-</script> -->
+<!-- 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const API_URL = "{% url 'users' 'student' %}";
@@ -495,6 +368,6 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchStudents();
   busPopulate();
 });
-</script>
+</script> -->
 
 {% endblock main %}
