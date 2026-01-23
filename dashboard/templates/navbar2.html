@@ -87,14 +87,14 @@
       </li>
 
       <li>
-        <a href="{% url 'students' %}" class="flex items-center gap-3">
+        <a href="{% url 'drivers' %}" class="flex items-center gap-3">
           <i data-lucide="user" class="w-4 h-4"></i>
           Drivers
         </a>
       </li>
-      {% if request.user.is_superuser %}
+      {% if not request.user.is_superuser %}
       <li>
-        <a href="" class="flex items-center gap-3">
+        <a href="{% url 'admins' %}" class="flex items-center gap-3">
           <i data-lucide="shield" class="w-4 h-4"></i>
           Admins
         </a>

@@ -1,0 +1,200 @@
+{% extends "main.html" %}
+
+{% block title %}Add {{role}}{% endblock title %}
+
+{% block main %}
+<div class="max-w-6xl mx-auto px-6 py-8 space-y-10">
+
+  <!-- Header -->
+  <div>
+    <h1 class="text-4xl font-bold tracking-tight">Add {{role}}</h1>
+    <p class="text-base-content/60 mt-1">
+      Register a new {{role}} or import multiple {{role}}s via CSV
+    </p>
+  </div>
+
+  <!-- Add {{role}} Card -->
+  <div class="card bg-base-100 shadow-2xl border border-base-200">
+    <div class="card-body space-y-6">
+
+      <h2 class="card-title text-2xl">{{role}} Details</h2>
+
+      <form method="post" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {% csrf_token %}
+  <input type="hidden" name="form_type" value="add_form">
+
+        <!-- {{role}} ID -->
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text font-medium">
+              {{role}} ID <span class="text-error">*</span>
+            </span>
+          </label>
+          <input
+            type="text"
+            name="{{role}}_id"
+            placeholder="e.g. 22K-1234"
+            required
+            class="input input-bordered focus:input-primary w-full"
+          />
+        </div>
+
+        <!-- Assigned Bus -->
+                  {% if role == 'Driver' %}
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text font-medium">
+             License ID <span class="text-error">*</span>
+            </span>
+          </label>
+          <input
+            type="text"
+            name="license_id"
+            placeholder="e.g. 22K-1234"
+            required
+            class="input input-bordered focus:input-primary w-full"
+          />
+        </div>
+        {%else %}
+                <div class="form-control">
+          <label class="label">
+            <span class="label-text font-medium">
+              Assigned Bus <span class="text-error">*</span>
+            </span>
+          </label>
+          <select
+            name="bus"
+            required
+            class="select select-bordered focus:select-primary w-full">
+            <option value="" disabled selected>Select bus</option>
+      {% for bus in buses %}
+            <option value="{{ bus.id }}">
+              {{ bus.name }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endif %}
+
+
+        <!-- First Name -->
+        <div class="form-control w-full">
+          <label class="label">
+            <span class="label-text font-medium">First Name <span class="text-error">*</span></span>
+          </label>
+          {{ form.first_name }}
+          {% if form.first_name.errors %}
+            <label class="label">
+              <span class="label-text-alt text-error">{{ form.first_name.errors|striptags }}</span>
+            </label>
+          {% endif %}
+        </div>
+
+        <!-- Last Name -->
+        <div class="form-control w-full">
+          <label class="label">
+            <span class="label-text font-medium">Last Name</span>
+          </label>
+          {{ form.last_name }}
+          {% if form.last_name.errors %}
+            <label class="label">
+              <span class="label-text-alt text-error">{{ form.last_name.errors|striptags }}</span>
+            </label>
+          {% endif %}
+        </div>
+
+        <!-- Email -->
+        <div class="form-control w-full">
+          <label class="label">
+            <span class="label-text font-medium">Email</span>
+          </label>
+          {{ form.email }}
+          {% if form.email.errors %}
+            <label class="label">
+              <span class="label-text-alt text-error">{{ form.email.errors|striptags }}</span>
+            </label>
+          {% endif %}
+        </div>
+
+        <!-- Phone -->
+        <div class="form-control w-full">
+          <label class="label">
+            <span class="label-text font-medium">Phone</span>
+          </label>
+          {{ form.phone }}
+          {% if form.phone.errors %}
+            <label class="label">
+              <span class="label-text-alt text-error">{{ form.phone.errors|striptags }}</span>
+            </label>
+          {% endif %}
+        </div>
+
+
+
+
+
+        <div class="form-control w-full">
+          <label class="label">
+            <span class="label-text font-medium">Avatar</span>
+          </label>
+          {{ form.avatar }}
+          {% if form.avatar.errors %}
+            <label class="label">
+              <span class="label-text-alt text-error">{{ form.avatar.errors|striptags }}</span>
+            </label>
+          {% endif %}
+        </div>
+
+
+        <!-- Action -->
+        <div class="md:col-span-2 flex justify-end pt-4">
+          <button type="submit" class="btn btn-primary btn-wide shadow-lg">
+            Add {{role}}
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- Divider -->
+  <div class="divider text-base-content/60">OR</div>
+
+  <!-- CSV Import Card -->
+  <div class="card bg-base-100 shadow-2xl border border-dashed border-base-300">
+    <div class="card-body space-y-6">
+
+      <h2 class="card-title text-2xl">Bulk Import via CSV</h2>
+      <p class="text-base-content/60">
+        Upload a CSV file to register multiple {{role}}s at once.
+      </p>
+
+      <div class="mockup-code text-sm">
+        <pre data-prefix=">"><code>{{role}}_id,first_name,last_name,email,phone,bus,status</code></pre>
+      </div>
+
+      <form method="post" enctype="multipart/form-data" class="space-y-5">
+        {% csrf_token %}
+
+        <!-- File Upload -->
+        <input
+          type="file"
+          name="csv_file"
+          accept=".csv"
+          class="file-input file-input-bordered file-input-primary w-full"
+        />
+
+        <!-- Actions -->
+        <div class="flex flex-col sm:flex-row justify-end gap-3">
+
+          <button type="submit" class="btn btn-outline btn-primary">
+            Import {{role}}s
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock main %}
