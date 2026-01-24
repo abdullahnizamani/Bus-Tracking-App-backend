@@ -20,40 +20,6 @@
       </button></a>
   </div>
 
-  <!-- Filters Toolbar (Sticky) -->
-  <!-- <div class="sticky top-4 z-20">
-    <div class="flex flex-col md:flex-row md:items-center gap-3 p-4 bg-base-200 rounded-lg shadow-sm">
-
-      <div class="relative w-full md:w-64">
-        <input type="text" placeholder="Search name / ID" class="input input-sm input-bordered w-full pl-10"
-          id="searchInput" />
-        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
-      </div>
-
-      <select class="select select-sm select-bordered w-full md:w-52" id="busSelect">
-        <option value="">All Buses</option>
-              {% for bus in buses %}
-        <option value="{{ bus.id }}" {% if request.GET.bus == bus.id|stringformat:"s" %}selected{% endif %}>
-          {{ bus.name }}
-        </option>
-      {% endfor %}
-      </select>
-
-      <select id="statusSelect" class="select select-sm select-bordered w-full md:w-40">
-        <option value="">All Status</option>
-        <option value="Active">Active</option>
-        <option value="Inactive">Inactive</option>
-      </select>
-
-      <div class="md:ml-auto flex gap-2 items-center">
-        <span id="selectedCount" class="text-sm opacity-60">0 selected</span>
-        <button class="btn btn-xs btn-outline btn-error" disabled>Delete Selected</button>
-        <button id="reset" type="reset" class="btn btn-sm btn-error">Reset</button>
-        <button class="btn btn-sm btn-outline btn-primary">Apply</button>
-      </div>
-
-    </div>
-  </div> -->
 <form method="get" class="sticky top-4 z-20">
   <div class="flex flex-col md:flex-row md:items-center gap-3 p-4 bg-base-200 rounded-lg shadow-sm">
 
@@ -84,12 +50,32 @@
     </select>
 
     <div class="md:ml-auto flex gap-2 items-center">
-      <a href="{% url 'students' %}" class="btn btn-sm btn-error">Reset</a>
+      <a href="{% url 'drivers' %}" class="btn btn-sm btn-error">Reset</a>
       <button type="submit" class="btn btn-sm btn-primary">Apply</button>
     </div>
 
   </div>
 </form>
+<div id="bulkActions"
+     class="hidden sticky top-20 z-30 bg-base-100 border border-base-200 rounded-lg p-3 shadow-sm flex flex-wrap items-center gap-3">
+
+  <span class="text-sm font-medium">
+    <span id="selectedCount">0</span> selected
+  </span>
+
+<label for="bulkDeleteModal" class="btn btn-sm btn-error" id="bulkDelete">
+  <i data-lucide="trash-2" class="w-4 h-4"></i>
+  Delete
+</label>
+
+
+
+<label for="bulkRemoveBusModal" class="btn btn-sm btn-warning" id="bulkRemoveBus">
+  <i data-lucide="x-circle" class="w-4 h-4"></i>
+  Remove Bus
+</label>
+</div>
+
   <!-- Drivers Table -->
   <div class="card bg-base-100 shadow-sm rounded-lg overflow-hidden">
     <div class="overflow-x-auto md:overflow-x-visible">
@@ -107,7 +93,7 @@
         <tbody id="Drivers-tbody">
           {% if drivers %}
           {% for driver in drivers %}
-          <tr>
+          <tr data-id="{{ driver.employee_id }}">
             <th>
               <input type="checkbox" class="checkbox rowCheck" data-index="0" />
             </th>
@@ -135,21 +121,30 @@
             </td>
             <td>{{ driver.user.phone }}</td>
             <td class="text-right space-x-1">
-              <button class="btn btn-square w-8 h-8 tooltip" data-tip="View">
-                <i data-lucide="eye" class="w-4 h-4"></i>
-              </button>
-              <button class="btn btn-square w-8 h-8 tooltip delete-single" data-index="0" data-tip="Delete">
-                <i data-lucide="trash-2" class="w-4 h-4 text-error"></i>
-              </button>
-              <button class="btn btn-square w-8 h-8 tooltip" data-tip="Reset Password">
-                <i data-lucide="key-round" class="w-4 h-4"></i>
-              </button>
+<!-- <a class="btn btn-square w-8 h-8 tooltip view-driver" data-tip="View" 
+       data-driver-id="{{ driver.employee_id }}" href="">
+    <i data-lucide="eye" class="w-4 h-4"></i>
+            </a> -->
+            <a href="{% url 'edit_driver' id=driver.employee_id %}" class="btn btn-square w-8 h-8 tooltip" data-tip="Edit">
+    <i data-lucide="edit" class="w-4 h-4"></i>
+</a>
+
+
+        <label class="btn btn-square w-8 h-8 tooltip delete-single" for="singleDeleteModal"
+          data-driver-id="{{ driver.employee_id }}" data-driver-name="{{ driver.user.first_name }}" data-tip="Delete">
+          <i data-lucide="trash-2" class="w-4 h-4 text-error"></i>
+        </label>
+
+        <label class="btn btn-square w-8 h-8 tooltip " for="passwordReset" data-tip="Reset Password" id="reset-password-btn"
+          data-driver-id="{{ driver.employee_id }}">
+          <i data-lucide="key-round" class="w-4 h-4"></i>
+        </label>
             </td>
           </tr>
           {% endfor %}
           {% else %}
           <tr><td colspan="6" class="py-8 text-center text-sm opacity-60">
-          No students match the current filters
+          No drivers match the current filters
         </td></tr>
           {% endif %}
 
@@ -205,5 +200,239 @@
   </div>
 
 </div>
+
+
+<!-- Bulk Delete Confirmation Modal -->
+<input type="checkbox" id="bulkDeleteModal" class="modal-toggle" />
+
+<div class="modal">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg text-error">
+      Confirm Deletion
+    </h3>
+
+    <p class="py-3 text-sm opacity-80">
+      You are about to delete <span class="font-semibold" id="deleteCount">0</span>
+      driver account(s).  
+      <br>
+      This action <span class="font-semibold">cannot be undone</span>.
+    </p>
+
+    <!-- POST FORM -->
+    <form method="post" action="{% url 'bulk_delete_users' %}">
+      {% csrf_token %}
+
+      <!-- Will be populated via JS -->
+      <input type="hidden" name="ids" id="deletedriverIds" />
+      <input type="hidden" name="role" value="driver" />
+
+      <div class="modal-action">
+        <label for="bulkDeleteModal" class="btn btn-sm">
+          Cancel
+        </label>
+        <button type="submit" class="btn btn-sm btn-error">
+          Yes, Delete
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+
+
+<!-- Bulk Remove Bus Modal -->
+<input type="checkbox" id="bulkRemoveBusModal" class="modal-toggle" />
+
+<div class="modal">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg text-warning">
+      Remove Bus Assignment
+    </h3>
+
+    <p class="py-3 text-sm opacity-80">
+      This will remove bus assignment from
+      <span class="font-semibold" id="removeBusCount">0</span>
+      driver(s).
+    </p>
+
+    <form method="post" action="{% url 'bulk_remove_bus' %}">
+      {% csrf_token %}
+      <input type="hidden" name="ids" id="removeBusdriverIds">
+      <input type="hidden" name="role" value="driver" />
+
+      <div class="modal-action">
+        <label for="bulkRemoveBusModal" class="btn btn-sm">
+          Cancel
+        </label>
+        <button type="submit" class="btn btn-sm btn-warning">
+          Remove Bus
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+
+<!-- Password reset modal -->
+
+<input type="checkbox" id="passwordReset" class="modal-toggle" />
+
+<div class="modal">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg text-info">
+      Password reset
+    </h3>
+
+    <p class="py-3 text-sm opacity-80">
+Are you sure you want to reset the password for this user?
+      <br>
+      This action <span class="font-semibold">cannot be undone</span>.
+    </p>
+
+    <!-- POST FORM -->
+    <form method="post" action="{% url 'password_reset' %}">
+      {% csrf_token %}
+
+      <input type="hidden" name="ids" id="passwordResetId" />
+      <input type="hidden" name="role" value="driver" />
+
+      <div class="modal-action">
+        <label for="passwordReset" class="btn btn-sm">
+          Cancel
+        </label>
+        <button type="submit" class="btn btn-sm btn-success">
+          Yes, Reset
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+
+<!-- Single Delete Confirmation Modal -->
+<input type="checkbox" id="singleDeleteModal" class="modal-toggle" />
+
+<div class="modal">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg text-error">
+      Confirm Deletion
+    </h3>
+
+    <p class="py-3 text-sm opacity-80">
+      You are about to delete driver <span class="font-semibold" id="singleDeleteDriverName"></span>.
+      <br>
+      This action <span class="font-semibold">cannot be undone</span>.
+    </p>
+
+    <!-- POST FORM -->
+    <form method="post" action="{% url 'bulk_delete_users' %}">
+      {% csrf_token %}
+
+      <!-- Separate hidden input for single delete -->
+      <input type="hidden" name="ids" id="singleDeleteDriverId" />
+      <input type="hidden" name="role" value="driver" />
+
+      <div class="modal-action">
+        <label for="singleDeleteModal" class="btn btn-sm">
+          Cancel
+        </label>
+        <button type="submit" class="btn btn-sm btn-error">
+          Yes, Delete
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+
+
+
+<script>
+  const selectAll = document.getElementById('selectAll');
+  const rowChecks = document.querySelectorAll('.rowCheck');
+  const bulkBar = document.getElementById('bulkActions');
+  const selectedCountEl = document.getElementById('selectedCount');
+
+  const deleteIdsInput = document.getElementById('deletedriverIds');
+  const deleteCountText = document.getElementById('deleteCount');
+
+  function getSelectedIds() {
+    return [...document.querySelectorAll('.rowCheck:checked')]
+      .map(cb => cb.closest('tr').dataset.id);
+  }
+
+  function updateBulkUI() {
+    const selectedIds = getSelectedIds();
+    selectedCountEl.textContent = selectedIds.length;
+
+    if (selectedIds.length > 0) {
+      bulkBar.classList.remove('hidden');
+    } else {
+      bulkBar.classList.add('hidden');
+    }
+
+    selectAll.checked = selectedIds.length === rowChecks.length && rowChecks.length > 0;
+  }
+
+  // Select all
+  selectAll.addEventListener('change', () => {
+    rowChecks.forEach(cb => cb.checked = selectAll.checked);
+    updateBulkUI();
+  });
+
+  // Individual rows
+  rowChecks.forEach(cb => {
+    cb.addEventListener('change', updateBulkUI);
+  });
+
+  // Populate delete modal
+  document.getElementById('bulkDelete').addEventListener('click', () => {
+    const ids = getSelectedIds();
+    deleteIdsInput.value = ids.join(',');
+    deleteCountText.textContent = ids.length;
+  });
+
+    document.getElementById('bulkRemoveBus').addEventListener('click', () => {
+    const ids = getSelectedIds();
+    document.getElementById('removeBusdriverIds').value = ids.join(',');
+    document.getElementById('removeBusCount').textContent = ids.length;
+  });
+
+
+
+document.querySelectorAll('#reset-password-btn').forEach(lbl => {
+  lbl.addEventListener('click', () => {
+    const driverId = lbl.dataset.driverId;
+
+    document.getElementById('passwordResetId').value = driverId;
+  });
+});
+
+
+
+
+
+
+
+
+
+
+
+
+// Single Delete
+document.querySelectorAll('.delete-single').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const driverId = btn.dataset.driverId;
+    const driverName = btn.dataset.driverName;
+    document.getElementById('singleDeleteDriverId').value = driverId;
+    document.getElementById('singleDeleteDriverName').textContent = driverName;
+  });
+});
+
+</script>
 
 {% endblock main %}

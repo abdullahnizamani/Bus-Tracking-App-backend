@@ -15,6 +15,47 @@
   });
 </script>
 
+
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<!-- <script type="module">
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDEh1_Pk58sTtlgknCyEnUAzTn7UgDWBE8",
+    authDomain: "busapp-7d45f.firebaseapp.com",
+    databaseURL: "https://busapp-7d45f-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "busapp-7d45f",
+    storageBucket: "busapp-7d45f.firebasestorage.app",
+    messagingSenderId: "940862242108",
+    appId: "1:940862242108:web:e673630f39652c5ce8b239",
+    measurementId: "G-CV7D1S329V"
+  };
+
+//   // Initialize Firebase
+//   firebase.initializeApp(firebaseConfig);
+//   const db = firebase.database();
+//   const ref = db.ref("buses");
+
+// ref.on("value", (snapshot) => {
+//   const buses = snapshot.val(); // ✅ get actual data
+//   if (!buses) return;           // safety check if no buses
+
+//   const busList = Object.values(buses);
+//   const isAnyBusActive = busList.some(bus => bus.status?.isActive);
+
+//   // update LIVE badge
+//   const liveBadge = document.getElementById("liveStatus");
+//   if (liveBadge) {
+//     liveBadge.textContent = isAnyBusActive ? "LIVE" : "OFFLINE";
+//     liveBadge.classList.toggle("badge-primary", isAnyBusActive);
+//     liveBadge.classList.toggle("badge-error", !isAnyBusActive);
+//   }
+// });
+
+</script> -->
+
 </head>
 <body>
     {% if messages %}
@@ -34,6 +75,21 @@
 <main class="flex-1 w-full p-4 min-h-screen">
     {% block main %}{% endblock main %}
 </main>
+<script type="module">
+  import { onBusesUpdate } from "{% static 'js/firebase-buses.js' %}";
+
+  onBusesUpdate((buses) => {
+    const busList = Object.values(buses);
+    const isAnyBusActive = busList.some(bus => bus.status?.isActive);
+
+    const liveBadge = document.getElementById("liveStatus");
+    if (liveBadge) {
+      liveBadge.textContent = isAnyBusActive ? "LIVE" : "OFFLINE";
+      liveBadge.classList.toggle("badge-primary", isAnyBusActive);
+      liveBadge.classList.toggle("badge-error", !isAnyBusActive);
+    }
+  });
+</script>
 
     
 </body>

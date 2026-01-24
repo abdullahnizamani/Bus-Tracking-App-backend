@@ -1,56 +1,94 @@
 {% extends "main.html" %}
 
 {% block title %}Buses{% endblock title %}
-  {% block head %} {% endblock head %}
+{% block head %} {% endblock head %}
 
 {% block main %}
 <div class="h-full w-full flex flex-col items-center pt-10">
-  <div class="space-y-6 text-center w-full max-w-4xl">
+  <div class="space-y-6 text-center w-full max-w-5xl">
 
-<h1 class="text-3xl font-bold">Buses</h1>
-  <p class="text-gray-700">
-    This is a mock content inside the main block to check layout and styling.
-  </p>
+    <h1 class="text-4xl font-bold text-gray-800">Buses</h1>
+    <p class="text-lg text-gray-600 mb-4">
+      Manage the buses in your fleet. Here you can add, edit, or delete buses from the system.
+    </p>
 
-  <!-- Mock table -->
-  <!-- <div class="overflow-x-auto "> -->
-        <!-- <div class="overflow-x-auto flex justify-center"> -->
-<div class="overflow-x-auto bg-white shadow-md rounded-lg w-full">
-       <form id="delete-bus"  action="{%url 'delete_bus'%}" method="post">{% csrf_token %}
-    <table class="table w-full border">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Name</th>
-          <th>Capacity</th>
-          <th>Route</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for bus in busObj %}
-        <tr class="hover">
-          <td>{{ bus.id }}</td>
-          <td>{{ bus.name }}</td>
-          <td class="text-{%if bus.is_active == 1 %}green{% else%}red{%endif%}-600">{{bus.capacity}}</td>
-          <td>{{bus.route.route_str}}</td>
-          <td><input type="checkbox" name="checkbox-delete" value="{{ bus.id }}"></td>
-        </tr>   
-        {% endfor %}
+    <!-- Enhanced Table -->
+    <div class="overflow-x-auto bg-white shadow-lg rounded-lg w-full">
+      <form id="delete-bus" action="{% url 'delete_bus' %}" method="post">
+        {% csrf_token %}
+        <table class="table table-zebra w-full">
+          <thead class="bg-gray-200 text-gray-700">
+            <tr>
+              <th class="py-3 px-4">ID</th>
+              <th class="py-3 px-4">Name</th>
+              <th class="py-3 px-4">Capacity</th>
+              <th class="py-3 px-4">Route</th>
+              <th class="py-3 px-4 text-center">
+                <!-- Select All Checkbox -->
+                <input type="checkbox" class="checkbox checkbox-primary" id="selectAll" />
+              </th>
+            </tr>
+          </thead>
+          <tbody class="text-gray-700">
+            {% for bus in busObj %}
+            <tr class="hover:bg-gray-50 transition-all">
+              <td class="py-3 px-4">{{ bus.id }}</td>
+              <td class="py-3 px-4 font-semibold">{{ bus.name }}</td>
+              <td class="py-3 px-4 text-center text-green-600">{{ bus.capacity }}</td>
+              <td class="py-3 px-4">{{ bus.route.route_str }}</td>
+              <td class="py-3 px-4 text-center">
+                <input type="checkbox" name="checkbox-delete" value="{{ bus.id }}" class="checkbox checkbox-primary rowCheck" />
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </form>
+    </div>
 
-      </tbody>
-    </table>
-    </form>
-
+    <!-- Action Buttons -->
+    <div class="flex gap-4 mt-6 justify-center">
+      <a href="{% url 'add_bus' %}">
+        <button class="btn btn-primary px-6 py-3 text-lg font-semibold">Add Bus</button>
+      </a>
+      <button class="btn btn-secondary px-6 py-3 text-lg font-semibold">Edit Bus</button>
+      <button class="btn btn-error px-6 py-3 text-lg font-semibold" form="delete-bus">Delete Bus</button>
+    </div>
   </div>
+</div>
 
-  <!-- Mock buttons -->
-  <div class="flex gap-2 mt-4">
-    <a href="{% url 'add_bus' %}"><button class="btn btn-primary">Add Bus</button></a>
-    <button class="btn btn-secondary">Edit Bus</button>
-    <button class="btn btn-error" form="delete-bus">Delete Bus</button>
-  </div>
+<script>
+  // Get all checkboxes
+  const selectAllCheckbox = document.getElementById('selectAll');
+  const rowCheckboxes = document.querySelectorAll('.rowCheck');
+  const selectedCount = document.getElementById('selectedCount');
 
-</div></div>
+  // Update the count of selected items
+  function updateSelectedCount() {
+    const count = document.querySelectorAll('.rowCheck:checked').length;
+    selectedCount.textContent = `${count} selected`;
+  }
+
+  // Handle "Select All" checkbox change
+  selectAllCheckbox.addEventListener('change', () => {
+    const isChecked = selectAllCheckbox.checked;
+
+    rowCheckboxes.forEach(checkbox => {
+      checkbox.checked = isChecked;
+    });
+
+    updateSelectedCount();  // Update the selected count after change
+  });
+
+  // Handle individual checkbox change
+  rowCheckboxes.forEach(cb => cb.addEventListener('change', () => {
+    const allChecked = Array.from(rowCheckboxes).every(checkbox => checkbox.checked);
+    selectAllCheckbox.checked = allChecked;
+    selectAllCheckbox.indeterminate = !allChecked && Array.from(rowCheckboxes).some(checkbox => checkbox.checked);
+    updateSelectedCount();
+  }));
+
+  // Initial call to update the count on page load
+  updateSelectedCount();
+</script>
 {% endblock main %}
-

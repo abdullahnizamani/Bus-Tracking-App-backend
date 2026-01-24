@@ -6,7 +6,7 @@ from users.serializers import DriverSerializer  # import from users app
 class RouteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Route
-        fields = ['id', 'route_str']
+        fields = ['id', 'route_str', 'path']
 
 class BusSerializer(serializers.ModelSerializer):
     route = RouteSerializer(read_only=True)

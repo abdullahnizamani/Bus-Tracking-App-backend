@@ -1,0 +1,149 @@
+{% extends "main.html" %}
+{% load static %}
+
+{% block title %}My Profile{% endblock title %}
+
+{% block main %}
+<div class="w-full max-w-5xl mx-auto space-y-6">
+
+    <div class="bg-base-100 p-6 rounded-xl border border-base-200 shadow-sm relative overflow-hidden group">
+        <div
+            class="absolute -right-10 -top-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-all duration-500">
+        </div>
+
+        <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+
+                <h1 class="text-2xl font-bold text-primary">My Profile</h1>
+                <p class="text-base-content/70 text-sm mt-1">Configure your preferences and customize your account
+                    settings.</p>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="bg-base-100 rounded-xl border border-base-200 shadow-sm overflow-hidden">
+        <form method="POST" enctype="multipart/form-data" class="divide-y divide-base-200">
+            {% csrf_token %}
+
+            <div class="p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-1 space-y-1">
+                    <h3 class="text-lg font-bold flex items-center gap-2">
+                        <i data-lucide="id-card" class="w-5 h-5 text-base-content/70"></i>
+                        User Profile
+                    </h3>
+                    <p class="text-sm text-base-content/60">Manage your account information and settings</p>
+                </div>
+
+                <div class="lg:col-span-2">
+                    <div class="flex flex-col md:flex-row gap-6">
+                        <div class="flex-shrink-0 flex justify-center md:justify-start">
+                            <div class="avatar  group cursor-pointer">
+                                <div
+                                    class="w-24 h-24 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
+                                    <img src="{{user.avatar.url}}" class="object-cover w-full h-full" alt="Avatar" />
+                                </div>
+                                <div
+                                    class="absolute inset-0 bg-black/30 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white">
+                                    <i data-lucide="camera" class="w-6 h-6"></i>
+                                    <!-- <input type="file" class="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" /> -->
+                                    {{ form.avatar.as_widget }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+
+                            <div class="form-control w-full">
+                                <label class="label">
+                                    <span class="label-text font-medium text-base-content/70">First Name</span>
+                                </label>
+                                <div class="relative">
+                                    <div
+                                        class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-base-content/40 z-10">
+                                        <i data-lucide="user" class="w-4 h-4"></i>
+                                    </div>
+
+                                    {{ form.first_name }}
+                                </div>
+                            </div>
+
+
+                            <div class="form-control w-full">
+                                <label class="label"><span class="label-text font-medium text-base-content/70">Last
+                                        Name</span></label>
+                                <div class="relative">
+                                    <div
+                                        class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-base-content/40 z-10">
+                                        <i data-lucide="user" class="w-4 h-4"></i>
+                                    </div>
+                                    {{ form.last_name }}
+
+                                </div>
+                            </div>
+
+                            <div class="form-control w-full">
+                                <label class="label"><span
+                                        class="label-text font-medium text-base-content/70">Username</span></label>
+                                <div class="join w-full border border-base-300 rounded-lg overflow-hidden">
+                                    <div
+                                        class="bg-base-200 flex items-center px-3 border-r border-base-300 text-sm text-base-content/60">
+                                        Username
+                                    </div>
+                                    {{ form.username }}
+                                </div>
+                                {% if form.username.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.username.errors|striptags }}</p>
+                                {% endif %}
+                            </div>
+
+                            <div class="form-control w-full">
+                                <label class="label"><span
+                                        class="label-text font-medium text-base-content/70">Email</span></label>
+                                <div class="relative">
+                                    <div
+                                        class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-base-content/40 z-10">
+                                        <i data-lucide="mail" class="w-4 h-4"></i>
+                                    </div>
+                                    {{form.email}}
+                                </div>
+                                {% if form.email.errors %}
+                                <p class="text-red-500 text-sm mt-1">{{ form.email.errors|striptags }}</p>
+                                {% endif %}
+                            </div>
+
+                            <div class="form-control w-full">
+                                <label class="label"><span
+                                        class="label-text font-medium text-base-content/70">Mobile</span></label>
+                                <div class="relative">
+                                    <div
+                                        class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-base-content/40 z-10">
+                                        <i data-lucide="phone" class="w-4 h-4"></i>
+                                    </div>
+                                    {{form.phone}}
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="p-6 bg-base-50/50 flex justify-between items-center">
+                <div class="text-xs text-base-content/40 pl-2">
+                    <span class="hidden md:inline">You might looking for: Manage users, Security & roles</span>
+                </div>
+                <div class="flex gap-3">
+                    <button type="button" class="btn btn-ghost hover:bg-base-200">
+                        <i data-lucide="x" class="w-4 h-4"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary text-white px-8">
+                        <i data-lucide="upload" class="w-4 h-4"></i> Update
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock main %}

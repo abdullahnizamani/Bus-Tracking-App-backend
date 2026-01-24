@@ -1,0 +1,239 @@
+{% extends "main.html" %}
+{% load static %}
+{% block title %}Live Map Dashboard{% endblock title %}
+
+{% block head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+
+<style>
+  /* Map fills main content */
+  #map { height: 100%; width: 100%; }
+
+  /* Floating badge for buses online */
+  .buses-online-badge {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    background: rgba(255,255,255,0.95);
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    font-weight: bold;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* Right-side panel inside main */
+  .right-panel {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 300px;
+    max-height: calc(100% - 2rem);
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(8px);
+    box-shadow: -5px 0 20px rgba(0,0,0,0.2);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    border-radius: 0.75rem;
+  }
+
+  /* Scrollable bus list */
+  .bus-list { overflow-y: auto; flex: 1; margin-top: 1rem; }
+
+  /* Floating action buttons */
+  .floating-btns {
+    position: absolute;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    z-index: 1000;
+  }
+
+
+</style>
+{% endblock head %}
+
+{% block main %}
+<div class="relative w-full h-full">
+
+  <!-- Map -->
+  <div id="map"></div>
+
+  <!-- Floating buses online badge -->
+  <div class="buses-online-badge">
+    <i class="fa-solid fa-bus text-primary"></i>
+    <span id="buses-online" id="busesActive">12 Buses Online</span>
+  </div>
+
+  <!-- Right-side panel -->
+  <div class="right-panel">
+    <h2 class="text-lg font-bold mb-4">Live Buses</h2>
+
+    <!-- Filters -->
+    <div class="flex flex-col gap-3">
+      <select class="select select-bordered w-full">
+        <option>All Lines</option>
+        <option>Line 1</option>
+        <option>Line 2</option>
+      </select>
+
+      <select class="select select-bordered w-full">
+        <option>All Drivers</option>
+        <option>Driver A</option>
+        <option>Driver B</option>
+      </select>
+
+      <button class="btn btn-primary w-full">Refresh Data</button>
+    </div>
+
+    <!-- Bus list -->
+    <div class="bus-list mt-4">
+      <ul class="menu menu-compact">
+        <li><a>Bus 101 - Driver A - On Time</a></li>
+        <li><a>Bus 102 - Driver B - Delayed</a></li>
+        <li><a>Bus 103 - Driver C - On Time</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Floating buttons -->
+  <div class="floating-btns">
+    <button id="center-btn" class="btn btn-circle btn-white shadow-lg hover:btn-primary" title="Center Map"><i class="fa-solid fa-location-crosshairs"></i></button>
+    <button id="zoom-in-btn" class="btn btn-circle btn-white shadow-lg hover:btn-primary" title="Zoom In"><i class="fa-solid fa-plus"></i></button>
+    <button id="zoom-out-btn" class="btn btn-circle btn-white shadow-lg hover:btn-primary" title="Zoom Out"><i class="fa-solid fa-minus"></i></button>
+  </div>
+
+</div>
+
+<!-- <script>
+  const map = L.map('map').setView([24.8607, 67.0011], 12);
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
+    subdomains: 'abcd',
+    maxZoom: 19
+  }).addTo(map);
+
+  const busIcon = L.icon({
+    iconUrl: 'https://cdn-icons-png.flaticon.com/512/61/61231.png',
+    iconSize: [35, 35],
+    iconAnchor: [17, 34],
+    popupAnchor: [0, -30]
+  });
+
+  const buses = [
+    {lat: 24.8607, lng: 67.0011, name: "Bus 101", driver: "A", speed: 45, status: "On Time"},
+    {lat: 24.8707, lng: 67.005, name: "Bus 102", driver: "B", speed: 38, status: "Delayed"},
+    {lat: 24.855, lng: 67.01, name: "Bus 103", driver: "C", speed: 50, status: "On Time"},
+  ];
+
+buses.forEach(bus => {
+  const popupContent = `
+    <div class="p-3 bg-base-100 rounded-xl shadow-lg w-60 font-sans">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="font-bold text-md">${bus.name}</h3>
+        <i class="fa-solid fa-bus text-primary"></i>
+      </div>
+      <div class="text-sm space-y-1">
+        <p><span class="font-semibold">Driver:</span> ${bus.driver}</p>
+        <p><span class="font-semibold">Speed:</span> ${bus.speed} km/h</p>
+        <p><span class="font-semibold">Status:</span> 
+          <span class="badge ${bus.status === 'Delayed' ? 'badge-error' : 'badge-success'}">${bus.status}</span>
+        </p>
+        <p><span class="font-semibold">Lat/Lon:</span> ${bus.lat.toFixed(4)}, ${bus.lng.toFixed(4)}</p>
+      </div>
+    </div>
+  `;
+  L.marker([bus.lat, bus.lng], {icon: busIcon})
+    .addTo(map)
+    .bindPopup(popupContent, {className: 'shadow-lg'});
+});
+
+  document.getElementById('center-btn').addEventListener('click', () => map.setView([24.8607, 67.0011], 12));
+  document.getElementById('zoom-in-btn').addEventListener('click', () => map.zoomIn());
+  document.getElementById('zoom-out-btn').addEventListener('click', () => map.zoomOut());
+</script> -->
+
+<script type="module">
+import { onBusesUpdate } from "{% static 'js/firebase-buses.js' %}";
+
+const map = L.map('map').setView([24.8607, 67.0011], 12);
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+  attribution: '&copy; <a href="https://www.openstreetmap.org/">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
+  subdomains: 'abcd',
+  maxZoom: 19
+}).addTo(map);
+
+const busIcon = L.icon({
+  iconUrl: 'https://cdn-icons-png.flaticon.com/512/61/61231.png',
+  iconSize: [35, 35],
+  iconAnchor: [17, 34],
+  popupAnchor: [0, -30]
+});
+
+const markers = {}; // Keep track of markers by bus ID
+
+onBusesUpdate((buses) => {
+  const busList = Object.entries(buses); // [ [id, bus], ... ]
+
+  // Count active buses
+  const activeBuses = busList.filter(([id, bus]) => bus.status?.isActive);
+  document.getElementById("buses-online").textContent = `${activeBuses.length} Buses Online`;
+
+  activeBuses.forEach(([id, bus]) => {
+    const { lat, lng } = bus.location || {};
+    if (!lat || !lng) return;
+
+    const speed = bus.speed ?? 0; // default 0 if missing
+    const driver = bus.driver ?? "Unknown";
+
+    const popupContent = `
+      <div class="p-3 bg-base-100 rounded-xl shadow-lg w-60 font-sans">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="font-bold text-md">Bus ${id}</h3>
+          <i class="fa-solid fa-bus text-primary"></i>
+        </div>
+        <div class="text-sm space-y-1">
+          <p><span class="font-semibold">Driver:</span> ${driver}</p>
+          <p><span class="font-semibold">Speed:</span> ${speed} km/h</p>
+          <p><span class="font-semibold">Status:</span> 
+            <span class="badge badge-success">Active</span>
+          </p>
+          <p><span class="font-semibold">Lat/Lon:</span> ${lat.toFixed(4)}, ${lng.toFixed(4)}</p>
+        </div>
+      </div>
+    `;
+
+    if (markers[id]) {
+      markers[id].setLatLng([lat, lng]);
+      markers[id].setPopupContent(popupContent);
+    } else {
+      const marker = L.marker([lat, lng], { icon: busIcon })
+        .addTo(map)
+        .bindPopup(popupContent, { className: 'shadow-lg' });
+      markers[id] = marker;
+    }
+  });
+
+  // Remove markers for buses that are now inactive
+  Object.keys(markers).forEach(id => {
+    if (!buses[id]?.status?.isActive) {
+      map.removeLayer(markers[id]);
+      delete markers[id];
+    }
+  });
+});
+</script>
+
+
+{% endblock main %}

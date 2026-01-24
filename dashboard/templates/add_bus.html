@@ -1,69 +1,161 @@
-{%extends 'main.html'%}
+{% extends 'main.html' %}
 
-{% block navbar %}
+{% block navbar %} 
 {% endblock navbar %}
-
-
 
 {% block title %}Add Bus{% endblock title %}
 
-  {% block head %} 
+{% block head %}
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
+  <style>
+    .form-container {
+      background-color: #ffffff;
+      border-radius: 8px;
+      padding: 3rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
 
-<script src='https://api.mapbox.com/mapbox-gl-js/v3.18.0/mapbox-gl.js'></script>
-<link href='https://api.mapbox.com/mapbox-gl-js/v3.18.0/mapbox-gl.css' rel='stylesheet' />
-  <link href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.5.0/mapbox-gl-draw.css" rel="stylesheet">
-<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.5.0/mapbox-gl-draw.js"></script>
+    .form-container h1 {
+      font-size: 1.75rem;
+      color: #333;
+      font-weight: 600;
+    }
 
+    .form-container p {
+      color: #555;
+      margin-bottom: 1.5rem;
+    }
+
+    .input, .btn {
+      border-radius: 8px;
+    }
+
+    .input {
+      padding: 0.75rem;
+      border: 2px solid #e0e0e0;
+      width: 100%;
+      transition: all 0.3s ease;
+    }
+
+    .input:focus {
+      border-color: #4caf50;
+      outline: none;
+    }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      transition: background-color 0.3s ease, transform 0.3s ease;
+    }
+
+    .btn-outline {
+      border: 2px solid #4caf50;
+      color: #4caf50;
+      background-color: transparent;
+    }
+
+    .btn-primary {
+      background-color: #4caf50;
+      color: #fff;
+      border: 2px solid #4caf50;
+    }
+
+    .btn:hover {
+      transform: scale(1.05);
+    }
+
+    .btn-outline:hover {
+      background-color: #4caf50;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: #45a049;
+    }
+
+    #map {
+      border-radius: 8px;
+      margin-top: 1rem;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+      font-weight: 600;
+      color: #333;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    .form-group input, .form-group select {
+      padding: 0.75rem;
+      font-size: 1rem;
+      border-radius: 8px;
+      width: 100%;
+      border: 2px solid #e0e0e0;
+    }
+
+    .form-group input:focus, .form-group select:focus {
+      border-color: #4caf50;
+      outline: none;
+    }
+  </style>
 {% endblock head %}
 
 {% block main %}
-<main class="p-4 min-h-screen flex justify-center items-start bg-base-100">
-
+<main class="p-6 flex justify-center items-center bg-base-100 min-h-screen">
   <!-- Form container -->
-  <div class="w-full max-w-lg p-6 bg-base-200 rounded-xl shadow-lg mt-10">
+  <div class="form-container w-full max-w-lg">
 
     <!-- Header -->
-    <h1 class="text-2xl font-bold mb-2">Add New Bus</h1>
-    <p class="text-gray-600 mb-6">Fill out the details to add a new bus to the system.</p>
+    <h1 class="text-center mb-4">Add New Bus</h1>
+    <p class="text-center text-sm text-gray-500">Fill out the details to add a new bus to the system.</p>
 
     <!-- Form -->
-    <form method="POST" class="space-y-4" id="bus-form">
+    <form method="POST" class="space-y-6" id="bus-form">
       {% csrf_token %}
 
       <!-- Bus Name -->
-      <div>
-        <label class="block text-sm font-medium mb-1" for="name">Bus Name</label>
-    {{ form.name }}
+      <div class="form-group">
+        <label for="name">Bus Name</label>
+        {{ form.name }}
       </div>
 
       <!-- Registration Number -->
-      <div>
-        <label class="block text-sm font-medium mb-1" for="registration_number">Registration Number</label>
-    {{ form.registration_number }}
+      <div class="form-group">
+        <label for="registration_number">Registration Number</label>
+        {{ form.registration_number }}
       </div>
-      <div>
-        <label class="block text-sm font-medium mb-1" for="route_str">Route Path</label>
-        <input type="text" name="route_str" id="route_str" placeholder="Enter Path alphabatically" class="input input-bordered w-full" required />
+
+      <!-- Route Path -->
+      <div class="form-group">
+        <label for="route_str">Route Path</label>
+        <input type="text" name="route_str" id="route_str" placeholder="Enter Path alphabetically" class="input input-bordered w-full" required />
       </div>
 
       <!-- Driver -->
-      <div>
-        <label class="block text-sm font-medium mb-1" for="driver_id">Driver</label>
-    {{ form.driver_id }}
-
+      <div class="form-group">
+        <label for="driver_id">Driver</label>
+        {{ form.driver_id }}
       </div>
 
       <!-- Capacity -->
-      <div>
-        <label class="block text-sm font-medium mb-1" for="capacity">Capacity</label>
-    {{ form.capacity }}
+      <div class="form-group">
+        <label for="capacity">Capacity</label>
+        {{ form.capacity }}
       </div>
 
-    <div id='map' class="w-full h-80"></div>
-
+      <!-- Map -->
+      <div id="map" class="w-full h-80"></div>
 
       <!-- Buttons -->
-      <div class="flex justify-end gap-2 mt-4">
+      <div class="flex justify-between mt-6">
         <a href="{% url 'buses' %}" class="btn btn-outline">Cancel</a>
         <button type="submit" class="btn btn-primary">Add Bus</button>
       </div>
@@ -71,48 +163,59 @@
     </form>
 
   </div>
-
 </main>
+
 <script>
-mapboxgl.accessToken = 'pk.eyJ1IjoiYWJkdWxsYWhuaXoiLCJhIjoiY21qeThtem55MDN6djNlc2M0bTA1cmplOCJ9.wzlt4-DFZnmHPdTOcUxr8Q';
-const map = new mapboxgl.Map({
-	container: 'map', // container ID
-	style: 'mapbox://styles/mapbox/streets-v12', // style URL
-	center: [67.079285,24.946631], // starting position [lng, lat]
-	zoom: 9, // starting zoom
-}); 
+  // Initialize the map
+  const map = L.map('map').setView([24.946631, 67.079285], 9);  
 
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(map);
 
-const draw = new MapboxDraw({
-  displayControlsDefault: false,
-  controls: {
-    line_string: true, // Allow drawing lines
-    trash: true
-  }
-});
-map.addControl(draw);
-map.addControl(new mapboxgl.FullscreenControl(), 'top-right');
+  const drawnItems = new L.FeatureGroup();
+  map.addLayer(drawnItems);
 
-document.getElementById('bus-form').addEventListener('submit', function(e) {
-  e.preventDefault(); // Stop normal form submission
+  const drawControl = new L.Control.Draw({
+    edit: {
+      featureGroup: drawnItems
+    },
+    draw: {
+      polyline: true, 
+      polygon: false, 
+      circle: false,
+      marker: false,
+      rectangle: false,
+    }
+  });
+  map.addControl(drawControl);
 
-  const routeData = draw.getAll();
-  if (!routeData.features.length) {
-    alert("Please draw a route before submitting!");
-    return;
-  }
+  map.on(L.Draw.Event.CREATED, function(e) {
+    const layer = e.layer;
+    drawnItems.addLayer(layer);
+  });
 
-  // Create a hidden input to store coordinates as JSON string
-  let coordsInput = document.createElement('input');
-  coordsInput.type = 'hidden';
-  coordsInput.name = 'coordinates'; // form field name
-  coordsInput.value = JSON.stringify(routeData.features[0].geometry.coordinates);
+  document.getElementById('bus-form').addEventListener('submit', function(e) {
+    e.preventDefault(); 
 
-  this.appendChild(coordsInput); // Add to form
+    const layers = drawnItems.getLayers();
+    if (layers.length === 0) {
+      alert("Please draw a route before submitting!");
+      return;
+    }
 
-  // Submit the form
-  this.submit();
-});
+    const routeCoordinates = layers[0].getLatLngs().map(latlng => [latlng.lng, latlng.lat]);
 
+    let coordsInput = document.createElement('input');
+    coordsInput.type = 'hidden';
+    coordsInput.name = 'coordinates'; 
+    coordsInput.value = JSON.stringify(routeCoordinates);
+
+    this.appendChild(coordsInput);
+
+    // Submit the form
+    this.submit();
+  });
 </script>
+
 {% endblock main %}
