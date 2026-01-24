@@ -27,6 +27,7 @@
                 <!-- Select All Checkbox -->
                 <input type="checkbox" class="checkbox checkbox-primary" id="selectAll" />
               </th>
+              <th class="py-3 px-4"></th>
             </tr>
           </thead>
           <tbody class="text-gray-700">
@@ -38,6 +39,9 @@
               <td class="py-3 px-4">{{ bus.route.route_str }}</td>
               <td class="py-3 px-4 text-center">
                 <input type="checkbox" name="checkbox-delete" value="{{ bus.id }}" class="checkbox checkbox-primary rowCheck" />
+              </td>
+              <td class="py-3 px-4 text-center">
+                <input type="radio" name="edit_bus" value="{{ bus.id }}" class="radio radio-primary" />
               </td>
             </tr>
             {% endfor %}
@@ -51,7 +55,7 @@
       <a href="{% url 'add_bus' %}">
         <button class="btn btn-primary px-6 py-3 text-lg font-semibold">Add Bus</button>
       </a>
-      <button class="btn btn-secondary px-6 py-3 text-lg font-semibold">Edit Bus</button>
+      <button class="btn btn-secondary px-6 py-3 text-lg font-semibold" onclick="goToEdit()">Edit Bus</button>
       <button class="btn btn-error px-6 py-3 text-lg font-semibold" form="delete-bus">Delete Bus</button>
     </div>
   </div>
@@ -90,5 +94,26 @@
 
   // Initial call to update the count on page load
   updateSelectedCount();
+
+
+function getSelectedBusId() {
+  const selected = document.querySelector('input[name="edit_bus"]:checked');
+  if (!selected) {
+    alert("Please select a bus first!");
+    return null;
+  }
+  return selected.value;
+}
+
+function goToEdit() {
+  const id = getSelectedBusId();
+  if (id) {
+    const baseEditUrl = "{% url 'edit_bus' 0 %}".replace('0', id);
+
+    window.location.href = baseEditUrl;
+  }
+}
+
+
 </script>
 {% endblock main %}

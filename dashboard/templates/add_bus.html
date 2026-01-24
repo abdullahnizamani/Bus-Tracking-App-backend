@@ -4,110 +4,81 @@
 {% endblock navbar %}
 
 {% block title %}Add Bus{% endblock title %}
-
 {% block head %}
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
+  
   <style>
-    .form-container {
-      background-color: #ffffff;
-      border-radius: 8px;
-      padding: 3rem;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    /* ... (Keep your existing styles for form-container, btn, map, etc.) ... */
+    .form-container { background-color: #ffffff; border-radius: 8px; padding: 3rem; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+    .form-container h1 { font-size: 1.75rem; color: #333; font-weight: 600; }
+    .form-container p { color: #555; margin-bottom: 1.5rem; }
+    .input, .btn { border-radius: 8px; }
+    .input { padding: 0.75rem; border: 2px solid #e0e0e0; width: 100%; transition: all 0.3s ease; }
+    .input:focus { border-color: #4caf50; outline: none; }
+    .btn { padding: 0.75rem 1.5rem; font-size: 1rem; transition: background-color 0.3s ease, transform 0.3s ease; }
+    .btn-outline { border: 2px solid #4caf50; color: #4caf50; background-color: transparent; }
+    .btn-primary { background-color: #4caf50; color: #fff; border: 2px solid #4caf50; }
+    .btn:hover { transform: scale(1.05); }
+    .btn-outline:hover { background-color: #4caf50; color: white; }
+    .btn-primary:hover { background-color: #45a049; }
+    #map { border-radius: 8px; margin-top: 1rem; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); }
+    .form-group { margin-bottom: 1.5rem; }
+    .form-group label { font-weight: 600; color: #333; display: block; margin-bottom: 0.5rem; }
+    
+    .form-group input, .form-group select { padding: 0.75rem; font-size: 1rem; border-radius: 8px; width: 100%; border: 2px solid #e0e0e0; }
+    .form-group input:focus, .form-group select:focus { border-color: #4caf50; outline: none; }
+
+    .tag-container {
+      display: flex; 
+      flex-wrap: wrap; 
+      align-items: center;
+      gap: 5px; 
+      padding: 5px 10px; 
+      min-height: 48px; 
+      cursor: text;
     }
 
-    .form-container h1 {
-      font-size: 1.75rem;
-      color: #333;
-      font-weight: 600;
+.tag {
+      background-color: #e3f2fd; /* Light blue background */
+      color: #1565c0; /* Dark blue text */
+      border: 1px solid #90caf9; /* Subtle blue border */
+      border-radius: 20px; /* Rounded pill shape */
+      padding: 4px 12px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      white-space: nowrap;
     }
 
-    .form-container p {
-      color: #555;
-      margin-bottom: 1.5rem;
+    .tag i {
+      margin-left: 8px;
+      cursor: pointer;
+      color: #1565c0; /* Match text color */
+      font-size: 1.1rem;
+      font-weight: bold;
+      line-height: 0.8;
     }
-
-    .input, .btn {
-      border-radius: 8px;
+    .tag i:hover {
+      color: #d32f2f; /* Red on hover for delete indication */
     }
-
-    .input {
-      padding: 0.75rem;
-      border: 2px solid #e0e0e0;
-      width: 100%;
-      transition: all 0.3s ease;
-    }
-
-    .input:focus {
-      border-color: #4caf50;
-      outline: none;
-    }
-
-    .btn {
-      padding: 0.75rem 1.5rem;
-      font-size: 1rem;
-      transition: background-color 0.3s ease, transform 0.3s ease;
-    }
-
-    .btn-outline {
-      border: 2px solid #4caf50;
-      color: #4caf50;
-      background-color: transparent;
-    }
-
-    .btn-primary {
-      background-color: #4caf50;
-      color: #fff;
-      border: 2px solid #4caf50;
-    }
-
-    .btn:hover {
-      transform: scale(1.05);
-    }
-
-    .btn-outline:hover {
-      background-color: #4caf50;
-      color: white;
-    }
-
-    .btn-primary:hover {
-      background-color: #45a049;
-    }
-
-    #map {
-      border-radius: 8px;
-      margin-top: 1rem;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    }
-
-    .form-group {
-      margin-bottom: 1.5rem;
-    }
-
-    .form-group label {
-      font-weight: 600;
-      color: #333;
-      display: block;
-      margin-bottom: 0.5rem;
-    }
-
-    .form-group input, .form-group select {
-      padding: 0.75rem;
-      font-size: 1rem;
-      border-radius: 8px;
-      width: 100%;
-      border: 2px solid #e0e0e0;
-    }
-
-    .form-group input:focus, .form-group select:focus {
-      border-color: #4caf50;
-      outline: none;
+    .form-group input.tag-input-field {
+      border: none !important;
+      outline: none !important;
+      background: transparent !important;
+      padding: 5px !important;
+      margin: 0 !important;
+      
+      flex-grow: 1; 
+      flex-basis: 60px; 
+      width: auto !important;
+      min-width: 60px; 
     }
   </style>
 {% endblock head %}
-
 {% block main %}
 <main class="p-6 flex justify-center items-center bg-base-100 min-h-screen">
   <!-- Form container -->
@@ -134,9 +105,12 @@
       </div>
 
       <!-- Route Path -->
-      <div class="form-group">
+<div class="form-group">
         <label for="route_str">Route Path</label>
-        <input type="text" name="route_str" id="route_str" placeholder="Enter Path alphabetically" class="input input-bordered w-full" required />
+        <div class="input tag-container" id="tag-wrapper">
+          <input type="text" id="tag-input" placeholder="Type location & press Enter" class="tag-input-field" />
+        </div>
+        <input type="hidden" name="route_str" id="hidden-route-str" required />
       </div>
 
       <!-- Driver -->
@@ -195,7 +169,70 @@
     drawnItems.addLayer(layer);
   });
 
-  document.getElementById('bus-form').addEventListener('submit', function(e) {
+
+  const tagWrapper = document.getElementById('tag-wrapper');
+  const tagInput = document.getElementById('tag-input');
+  const hiddenInput = document.getElementById('hidden-route-str');
+  let tags = [];
+
+  // Focus input when clicking anywhere on the container
+  tagWrapper.addEventListener('click', () => {
+    tagInput.focus();
+  });
+
+  // Handle Enter key and Comma
+  tagInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault(); // Stop form submission or comma printing
+      const val = tagInput.value.trim();
+      if (val) {
+        addTag(val);
+        tagInput.value = '';
+      }
+    }
+    // Handle Backspace to delete last tag if input is empty
+    if (e.key === 'Backspace' && tagInput.value === '' && tags.length > 0) {
+      removeTag(tags.length - 1);
+    }
+  });
+
+  function addTag(text) {
+    // Optional: Prevent duplicates
+    if (tags.includes(text)) return; 
+
+    tags.push(text);
+    renderTags();
+    updateHiddenInput();
+  }
+
+  function removeTag(index) {
+    tags.splice(index, 1);
+    renderTags();
+    updateHiddenInput();
+  }
+
+  function renderTags() {
+    // Clear existing tags (but keep the input)
+    const existingTags = tagWrapper.querySelectorAll('.tag');
+    existingTags.forEach(tag => tag.remove());
+
+    // Insert tags before the input field
+    tags.forEach((tagText, index) => {
+      const tagEl = document.createElement('div');
+      tagEl.classList.add('tag');
+      tagEl.innerHTML = `
+        ${tagText}
+        <i onclick="removeTag(${index})">&times;</i>
+      `;
+      tagWrapper.insertBefore(tagEl, tagInput);
+    });
+  }
+
+  function updateHiddenInput() {
+    hiddenInput.value = tags.join(' - ');
+  }
+
+    document.getElementById('bus-form').addEventListener('submit', function(e) {
     e.preventDefault(); 
 
     const layers = drawnItems.getLayers();
@@ -203,7 +240,11 @@
       alert("Please draw a route before submitting!");
       return;
     }
-
+// Validate Tags
+    if (tags.length === 0) {
+      alert("Please add at least one location to the route path!");
+      return;
+    }
     const routeCoordinates = layers[0].getLatLngs().map(latlng => [latlng.lng, latlng.lat]);
 
     let coordsInput = document.createElement('input');

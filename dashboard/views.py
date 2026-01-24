@@ -5,7 +5,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.http import require_POST #
 from django.db.models import Q
 from django.db import transaction, IntegrityError
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError,ObjectDoesNotExist 
 from users.serializers import LoginSerializer
 from users.models import User, Driver, Student
 from transport.models import Bus, Route
@@ -491,3 +491,42 @@ def edit_student(request, id):
 
 def live_map(request):
     return render(request, 'live_map.html')
+
+
+def edit_bus(request, pk):
+    bus = get_object_or_404(Bus, pk=pk)
+
+    if request.method == "POST":
+        form = BusForm(request.POST, instance=bus)
+
+        if form.is_valid():
+            bus = form.save()
+
+            try:
+                route = bus.route
+            except ObjectDoesNotExist:
+                route = Route(bus=bus)
+
+            route.route_str = request.POST.get('route_str', "")
+
+            coords_json = request.POST.get('coordinates')
+            if coords_json:
+                try:
+                    route.path = json.loads(coords_json)
+                except json.JSONDecodeError:
+                    pass
+
+            route.save()
+            
+            messages.success(request, "Bus details updated successfully.")
+            return redirect('buses')
+        else:
+            messages.error(request, "Error updating bus. Please check the form details.")
+
+    else:
+        form = BusForm(instance=bus)
+
+    return render(request, 'edit_bus.html', {
+        'form': form,
+        'bus': bus,
+    })

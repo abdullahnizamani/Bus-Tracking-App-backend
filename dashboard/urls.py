@@ -24,6 +24,7 @@ urlpatterns = [
     path("edit_driver/<str:id>", views.edit_driver, name="edit_driver"),
     path("edit_student/<str:id>", views.edit_student, name="edit_student"),
     path("live_map/", views.live_map, name="live_map"),
+    path("edit_bus/<str:pk>", views.edit_bus, name="edit_bus"),
 
 ]
 

@@ -1,0 +1,279 @@
+{% extends 'main.html' %}
+
+{% block navbar %}{% endblock navbar %}
+
+{% block title %}Edit Bus{% endblock title %}
+
+{% block head %}
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
+  
+  <style>
+    /* ... (Keep your existing styles) ... */
+    .form-container { background-color: #ffffff; border-radius: 8px; padding: 3rem; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+    .form-container h1 { font-size: 1.75rem; color: #333; font-weight: 600; }
+    .form-container p { color: #555; margin-bottom: 1.5rem; }
+    .input, .btn { border-radius: 8px; }
+    .input { padding: 0.75rem; border: 2px solid #e0e0e0; width: 100%; transition: all 0.3s ease; }
+    .input:focus { border-color: #4caf50; outline: none; }
+    .btn { padding: 0.75rem 1.5rem; font-size: 1rem; transition: background-color 0.3s ease, transform 0.3s ease; }
+    .btn-outline { border: 2px solid #4caf50; color: #4caf50; background-color: transparent; }
+    .btn-primary { background-color: #4caf50; color: #fff; border: 2px solid #4caf50; }
+    .btn:hover { transform: scale(1.05); }
+    .btn-outline:hover { background-color: #4caf50; color: white; }
+    .btn-primary:hover { background-color: #45a049; }
+    
+    /* --- FIX 1: GIVE MAP A HEIGHT --- */
+    #map { 
+      border-radius: 8px; 
+      margin-top: 1rem; 
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      height: 400px; /* Essential for Leaflet to render */
+    }
+
+    .form-group { margin-bottom: 1.5rem; }
+    .form-group label { font-weight: 600; color: #333; display: block; margin-bottom: 0.5rem; }
+    
+    .form-group input, .form-group select { padding: 0.75rem; font-size: 1rem; border-radius: 8px; width: 100%; border: 2px solid #e0e0e0; }
+    .form-group input:focus, .form-group select:focus { border-color: #4caf50; outline: none; }
+
+    .tag-container {
+      display: flex; 
+      flex-wrap: wrap; 
+      align-items: center;
+      gap: 5px; 
+      padding: 5px 10px; 
+      min-height: 48px; 
+      cursor: text;
+    }
+
+    .tag {
+      background-color: #e3f2fd; 
+      color: #1565c0; 
+      border: 1px solid #90caf9; 
+      border-radius: 20px; 
+      padding: 4px 12px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      white-space: nowrap;
+    }
+
+    .tag i {
+      margin-left: 8px;
+      cursor: pointer;
+      color: #1565c0; 
+      font-size: 1.1rem;
+      font-weight: bold;
+      line-height: 0.8;
+    }
+    .tag i:hover {
+      color: #d32f2f; 
+    }
+    .form-group input.tag-input-field {
+      border: none !important;
+      outline: none !important;
+      background: transparent !important;
+      padding: 5px !important;
+      margin: 0 !important;
+      flex-grow: 1; 
+      flex-basis: 60px; 
+      width: auto !important;
+      min-width: 60px; 
+    }
+  </style>
+{% endblock head %}
+
+{% block main %}
+<main class="p-6 flex justify-center items-center min-h-screen">
+<div class="form-container w-full max-w-lg">
+
+<h1 class="text-center mb-2">Edit Bus</h1>
+<p class="text-center text-sm text-gray-500">
+Update bus details and route information
+</p>
+
+<form method="POST" id="bus-form" class="space-y-6">
+{% csrf_token %}
+
+<div class="form-group">
+  <label>Bus Name</label>
+  {{ form.name }}
+</div>
+
+<div class="form-group">
+  <label>Registration Number</label>
+  {{ form.registration_number }}
+</div>
+
+<div class="form-group">
+  <label>Route Path</label>
+  <div class="input tag-container" id="tag-wrapper">
+    <input type="text" id="tag-input" class="tag-input-field"
+           placeholder="Type location & press Enter">
+  </div>
+  <input type="hidden" name="route_str" id="hidden-route-str"
+         value="{{ bus.route.route_str }}">
+</div>
+
+<div class="form-group">
+  <label>Driver</label>
+  {{ form.driver_id }}
+</div>
+
+<div class="form-group">
+  <label>Capacity</label>
+  {{ form.capacity }}
+</div>
+
+<div id="map"></div>
+
+<div class="flex justify-between mt-6">
+  <a href="{% url 'buses' %}" class="btn btn-outline">Cancel</a>
+  <button type="submit" class="btn btn-primary">Save Changes</button>
+</div>
+
+</form>
+</div>
+</main>
+
+<script>
+/* ================= MAP SETUP ================= */
+
+const map = L.map('map').setView([24.9466, 67.0792], 9);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
+
+const drawnItems = new L.FeatureGroup();
+map.addLayer(drawnItems);
+
+const drawControl = new L.Control.Draw({
+  edit: { featureGroup: drawnItems },
+  draw: {
+    polyline: true,
+    polygon: false,
+    marker: false,
+    circle: false,
+    rectangle: false
+  }
+});
+map.addControl(drawControl);
+
+/* ================= LOAD EXISTING ROUTE ================= */
+
+// Safely handle empty path scenarios
+const existingPath = {{ bus.route.path|default:"[]"|safe }};
+
+if (existingPath && existingPath.length > 0) {
+  const polyline = L.polyline(
+    existingPath.map(p => [p[1], p[0]]) // Convert [lng,lat] to [lat,lng]
+  );
+  drawnItems.addLayer(polyline);
+  map.fitBounds(polyline.getBounds());
+}
+
+/* Enforce SINGLE route only */
+map.on(L.Draw.Event.CREATED, function (e) {
+  drawnItems.clearLayers();
+  drawnItems.addLayer(e.layer);
+});
+
+/* ================= TAG INPUT (HYPHEN-SEPARATED) ================= */
+
+const tagWrapper = document.getElementById('tag-wrapper');
+const tagInput = document.getElementById('tag-input');
+const hiddenInput = document.getElementById('hidden-route-str');
+
+/* --- FIX 2: ROBUST SPLITTING LOGIC --- */
+let tags = [];
+if (hiddenInput.value) {
+    // Split by hyphen, then trim whitespace from resulting chunks
+    // This handles "A-B", "A - B", and "A   -   B" correctly
+    tags = hiddenInput.value.split('-').map(t => t.trim()).filter(Boolean);
+}
+
+function renderTags() {
+  tagWrapper.querySelectorAll('.tag').forEach(t => t.remove());
+
+  tags.forEach((tag, index) => {
+    const el = document.createElement('div');
+    el.className = 'tag';
+    el.innerHTML = `
+      <span>${tag}</span>
+      <i onclick="removeTag(${index})">&times;</i>
+    `;
+    tagWrapper.insertBefore(el, tagInput);
+  });
+
+  // Re-join with a clean format for the backend
+  hiddenInput.value = tags.join(' - ');
+}
+
+function removeTag(index) {
+  tags.splice(index, 1);
+  renderTags();
+}
+
+tagWrapper.addEventListener('click', (e) => {
+    if(e.target === tagWrapper) tagInput.focus();
+});
+
+tagInput.addEventListener('keydown', function (e) {
+  if (e.key === 'Enter' || e.key === '-') {
+    e.preventDefault();
+
+    const value = tagInput.value.trim();
+    if (value && !tags.includes(value)) {
+      tags.push(value);
+      tagInput.value = '';
+      renderTags();
+    }
+  }
+
+  if (e.key === 'Backspace' && tagInput.value === '' && tags.length > 0) {
+    removeTag(tags.length - 1);
+  }
+});
+
+// Initial Render
+renderTags();
+
+/* ================= FORM SUBMIT ================= */
+
+document.getElementById('bus-form').addEventListener('submit', function (e) {
+  e.preventDefault();
+
+  const layers = drawnItems.getLayers();
+  
+  // Optional: Allow saving without redrawing if existing route is kept?
+  // If drawnItems is empty but we have a path, it might be an issue.
+  // But drawnItems should have the loaded layer added on start.
+  if (layers.length === 0) {
+    alert("Please ensure a route is drawn on the map!");
+    return;
+  }
+
+  if (tags.length === 0) {
+    alert("Please add at least one route location!");
+    return;
+  }
+
+  const latlngs = layers[0].getLatLngs();
+  const path = latlngs.map(p => [p.lng, p.lat]);
+
+  const pathInput = document.createElement('input');
+  pathInput.type = 'hidden';
+  pathInput.name = 'coordinates'; // Ensure this matches backend expectation (coordinates vs path)
+  pathInput.value = JSON.stringify(path);
+
+  this.appendChild(pathInput);
+  this.submit();
+});
+</script>
+{% endblock main %}
