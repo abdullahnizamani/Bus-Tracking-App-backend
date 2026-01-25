@@ -8,6 +8,7 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
 
 <style>
+  
   /* Map fills main content */
   #map { height: 100%; width: 100%; }
 
@@ -59,6 +60,20 @@
   }
 
 
+/* This will only apply to mobile screens */
+@media (max-width: 768px) {
+  #sidebar {
+    z-index: 2000; /* Higher than the map */
+  }
+
+
+  .buses-online-badge {
+    margin-top:100px;
+    margin-left:165px;
+  }
+
+}
+
 </style>
 {% endblock head %}
 
@@ -69,38 +84,19 @@
   <div id="map"></div>
 
   <!-- Floating buses online badge -->
-  <div class="buses-online-badge">
+  <div class="buses-online-badge ">
+    
     <i class="fa-solid fa-bus text-primary"></i>
-    <span id="buses-online" id="busesActive">12 Buses Online</span>
+    <span id="buses-online" id="busesActive">0 Buses Online</span>
   </div>
 
   <!-- Right-side panel -->
   <div class="right-panel">
-    <h2 class="text-lg font-bold mb-4">Live Buses</h2>
-
-    <!-- Filters -->
-    <div class="flex flex-col gap-3">
-      <select class="select select-bordered w-full">
-        <option>All Lines</option>
-        <option>Line 1</option>
-        <option>Line 2</option>
-      </select>
-
-      <select class="select select-bordered w-full">
-        <option>All Drivers</option>
-        <option>Driver A</option>
-        <option>Driver B</option>
-      </select>
-
-      <button class="btn btn-primary w-full">Refresh Data</button>
-    </div>
-
+    <h2 class="text-lg font-bold ">Live Buses</h2>
     <!-- Bus list -->
-    <div class="bus-list mt-4">
-      <ul class="menu menu-compact">
-        <li><a>Bus 101 - Driver A - On Time</a></li>
-        <li><a>Bus 102 - Driver B - Delayed</a></li>
-        <li><a>Bus 103 - Driver C - On Time</a></li>
+    <div class="bus-list">
+      <ul id="bus-list-ul" class="menu menu-compact">
+
       </ul>
     </div>
   </div>
@@ -114,54 +110,6 @@
 
 </div>
 
-<!-- <script>
-  const map = L.map('map').setView([24.8607, 67.0011], 12);
-
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
-    subdomains: 'abcd',
-    maxZoom: 19
-  }).addTo(map);
-
-  const busIcon = L.icon({
-    iconUrl: 'https://cdn-icons-png.flaticon.com/512/61/61231.png',
-    iconSize: [35, 35],
-    iconAnchor: [17, 34],
-    popupAnchor: [0, -30]
-  });
-
-  const buses = [
-    {lat: 24.8607, lng: 67.0011, name: "Bus 101", driver: "A", speed: 45, status: "On Time"},
-    {lat: 24.8707, lng: 67.005, name: "Bus 102", driver: "B", speed: 38, status: "Delayed"},
-    {lat: 24.855, lng: 67.01, name: "Bus 103", driver: "C", speed: 50, status: "On Time"},
-  ];
-
-buses.forEach(bus => {
-  const popupContent = `
-    <div class="p-3 bg-base-100 rounded-xl shadow-lg w-60 font-sans">
-      <div class="flex items-center justify-between mb-2">
-        <h3 class="font-bold text-md">${bus.name}</h3>
-        <i class="fa-solid fa-bus text-primary"></i>
-      </div>
-      <div class="text-sm space-y-1">
-        <p><span class="font-semibold">Driver:</span> ${bus.driver}</p>
-        <p><span class="font-semibold">Speed:</span> ${bus.speed} km/h</p>
-        <p><span class="font-semibold">Status:</span> 
-          <span class="badge ${bus.status === 'Delayed' ? 'badge-error' : 'badge-success'}">${bus.status}</span>
-        </p>
-        <p><span class="font-semibold">Lat/Lon:</span> ${bus.lat.toFixed(4)}, ${bus.lng.toFixed(4)}</p>
-      </div>
-    </div>
-  `;
-  L.marker([bus.lat, bus.lng], {icon: busIcon})
-    .addTo(map)
-    .bindPopup(popupContent, {className: 'shadow-lg'});
-});
-
-  document.getElementById('center-btn').addEventListener('click', () => map.setView([24.8607, 67.0011], 12));
-  document.getElementById('zoom-in-btn').addEventListener('click', () => map.zoomIn());
-  document.getElementById('zoom-out-btn').addEventListener('click', () => map.zoomOut());
-</script> -->
 
 <script type="module">
 import { onBusesUpdate } from "{% static 'js/firebase-buses.js' %}";
@@ -194,7 +142,7 @@ onBusesUpdate((buses) => {
     const { lat, lng } = bus.location || {};
     if (!lat || !lng) return;
 
-    const speed = bus.speed ?? 0; // default 0 if missing
+    const speedKmh = bus.location.speed ?? 0; // default 0 if missing
     const driver = bus.driver ?? "Unknown";
 
     const popupContent = `
@@ -204,8 +152,8 @@ onBusesUpdate((buses) => {
           <i class="fa-solid fa-bus text-primary"></i>
         </div>
         <div class="text-sm space-y-1">
-          <p><span class="font-semibold">Driver:</span> ${driver}</p>
-          <p><span class="font-semibold">Speed:</span> ${speed} km/h</p>
+          <p><span class="font-semibold">Driver:</span> ${driver.name}</p>
+          <p><span class="font-semibold">Speed:</span> ${speedKmh} km/h</p>
           <p><span class="font-semibold">Status:</span> 
             <span class="badge badge-success">Active</span>
           </p>
@@ -231,6 +179,17 @@ onBusesUpdate((buses) => {
       map.removeLayer(markers[id]);
       delete markers[id];
     }
+  });
+
+    const busListUL = document.getElementById("bus-list-ul");
+  busListUL.innerHTML = ""; // clear old list
+
+  activeBuses.forEach(([id, bus]) => {
+    const driverName = bus.driver?.name ?? "Unknown";
+
+    const li = document.createElement("li");
+    li.innerHTML = `<a>Bus ${id} - ${driverName} </a>`;
+    busListUL.appendChild(li);
   });
 });
 </script>

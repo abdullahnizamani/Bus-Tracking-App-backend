@@ -20,6 +20,7 @@ from users.serializers import UserSerializer
 from users.models import Student, Driver
 from transport.serializers import BusSerializer
 from transport.models import Bus
+from django.contrib.auth.hashers import make_password, check_password
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -51,9 +52,40 @@ def logout_view(request):
     return Response({"success": True})
 
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def change_password(request):
+    user = request.user
+
+    current_password = request.data.get('current_password')
+    new_password = request.data.get('new_password')
+
+    if not current_password or not new_password:
+        return Response(
+            {"error": "Both current_password and new_password are required"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    if not user.check_password(current_password):
+        return Response(
+            {"error": "Incorrect current password"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    try:
+        user.set_password(new_password)
+        user.save()
+        return Response(
+            {"success": "Password changed successfully"},
+            status=status.HTTP_200_OK
+        )
+    except Exception:
+        return Response(
+            {"error": "Failed to change password"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
 @api_view(['GET'])
-
 def users(request, role):
     search = request.GET.get("search")
 

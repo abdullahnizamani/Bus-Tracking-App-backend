@@ -6,5 +6,5 @@ from firebase_admin import credentials, db
 if not firebase_admin._apps:
     cred = credentials.Certificate("BusCore/serviceAccountKey.json")
     firebase_admin.initialize_app(cred, {
-        "databaseURL": ""
+        "databaseURL": "https://busapp-7d45f-default-rtdb.asia-southeast1.firebasedatabase.app/"
     })

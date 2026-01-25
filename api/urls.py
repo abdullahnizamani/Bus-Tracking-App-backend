@@ -13,6 +13,8 @@ urlpatterns = [
     path('auth/logout/', views.logout_view),
     path('auth/users/<str:role>', views.users, name='users'),
     path('auth/me/', views.me_view, name='me'),
+    path('auth/change-password/', views.change_password, name='change-password'),
+    
     path("student/bus/", views.student_bus_view, name="student-bus"),
     path("driver/bus/", views.driver_bus_view, name="driver-bus"),
     path("buses/<int:id>/", views.bus_info, name="buses"),

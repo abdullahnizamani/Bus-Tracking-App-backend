@@ -84,6 +84,7 @@
           <tr>
             <th><input type="checkbox" class="checkbox" id="selectAll" /></th>
             <th>Driver</th>
+            <th>License ID</th>
             <th>Email</th>
             <th>Bus Assignment</th>
             <th>Phone</th>
@@ -106,10 +107,12 @@
                 </div>
                 <div>
                   <div class="font-bold">{{ driver.user.first_name }}</div>
-                  <div class="text-sm opacity-50">{{ driver.license_id }}</div>
+                  <div class="text-sm opacity-50">{{ driver.employee_id }}</div>
                 </div>
               </div>
             </td>
+            <td>{{driver.license_id}}</td>
+
             <td class="text-sm">{{driver.user.email}}</td>
             <td>
               {% if driver.bus %}
