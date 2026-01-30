@@ -40,20 +40,17 @@ def login_user(request):
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
-        try:
-            user = User.objects.get(username=username)
-        except:
-            messages.error(request, "The user does not exist")
         user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-            messages.success(request, "Login successful")
-            return redirect('dashboard')
-        else:
+        if user is None:
             messages.error(request, "Incorrect username or password")
             return redirect('login')
-
-
+        if not user.is_staff:
+            messages.error(request, "You are not authorized to access this area")
+            return redirect('login')
+        user = authenticate(request, username=username, password=password)
+        login(request, user)
+        messages.success(request, "Login successful")
+        return redirect('dashboard')
     return render(request, 'login.html')
 
 def logout_user(request):
@@ -61,11 +58,12 @@ def logout_user(request):
     return redirect('login')
 
 
-
+@login_required(login_url='login')
 def buses(request):
     busObj = Bus.objects.all()
     return render(request, 'buses.html', {"busObj":busObj})
 
+@login_required(login_url='login')
 def add_bus(request):
     if request.method == 'POST':
         form = BusForm(request.POST)
@@ -100,7 +98,8 @@ def delete_bus(request):
                 messages.error(request, "there was an error deleting the buses")
 
                 return redirect('buses')
-            
+
+@login_required(login_url='login')
 def students(request):
     students = Student.objects.select_related('user')
     buses = Bus.objects.all()
@@ -135,6 +134,7 @@ def students(request):
     return render(request, 'students.html', ctx)
 
 
+@login_required(login_url='login')
 def add_student(request):
     
     if request.method == 'POST':
@@ -232,6 +232,7 @@ def add_student(request):
 
 
 
+@login_required(login_url='login')
 def drivers(request):
     drivers = Driver.objects.select_related('user').prefetch_related('bus')
 
@@ -265,6 +266,7 @@ def drivers(request):
     return render(request, 'drivers.html', ctx)
 
 
+@login_required(login_url='login')
 def add_driver(request):
     if request.method == 'POST':
         form_type = request.POST.get('form_type')
@@ -404,6 +406,7 @@ def bulk_remove_bus(request):
                 messages.error(request, f'There was an issue deleting the assignments')
                 return redirect('drivers')
 
+@login_required(login_url='login')
 def profile(request):
     user = User.objects.get(id=request.user.id)
 
@@ -436,6 +439,7 @@ def password_reset(request):
  
 
 
+@login_required(login_url='login')
 def edit_driver(request, id):
     
 
@@ -462,6 +466,7 @@ def edit_driver(request, id):
         ctx = {'form':form, 'role':'Driver', 'user':user}
         return render(request, 'user_profile.html', ctx)
 
+@login_required(login_url='login')
 def edit_student(request, id):
     user = get_object_or_404(User, username=id)
 
@@ -489,10 +494,12 @@ def edit_student(request, id):
         return render(request, 'user_profile.html', ctx)
 
 
+@login_required(login_url='login')
 def live_map(request):
     return render(request, 'live_map.html')
 
 
+@login_required(login_url='login')
 def edit_bus(request, pk):
     bus = get_object_or_404(Bus, pk=pk)
 
