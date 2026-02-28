@@ -4,15 +4,22 @@ from knox import views as knox_views
 from django.contrib.auth import authenticate
 
 
+class UserInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'avatar']
+
+
 class DriverSerializer(serializers.ModelSerializer):
+    user = UserInfoSerializer(read_only=True)
     class Meta:
         model = Driver
-        fields = ['employee_id', 'license_id']
+        fields = ['employee_id', 'license_id', 'user']
 
 class StudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Student
-        fields = ['student_id', 'bus_id']
+        fields = ['student_id', 'bus']
 
 class UserSerializer(serializers.ModelSerializer):
     driver = DriverSerializer(read_only=True)

@@ -41,7 +41,7 @@
                             <div class="avatar  group cursor-pointer">
                                 <div
                                     class="w-24 h-24 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
-                                    <img src="{{user.avatar.url}}" class="object-cover w-full h-full" alt="Avatar" />
+                                    <img id="avatarPreview" src="{{user.avatar.url}}" class="object-cover w-full h-full" alt="Avatar" />
                                 </div>
                                 <div
                                     class="absolute inset-0 bg-black/30 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white">
@@ -146,4 +146,20 @@
         </form>
     </div>
 </div>
+
+    <script>
+        const avatarInput = document.getElementById('avatarInput');
+        const avatarPreview = document.getElementById('avatarPreview');
+
+        avatarInput.addEventListener('change', function () {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    avatarPreview.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
 {% endblock main %}

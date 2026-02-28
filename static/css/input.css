@@ -5,7 +5,7 @@
 
 @plugin "./daisyui.mjs"{
 
-  themes: light --default;
+  themes: dark --default;
 
 }
 

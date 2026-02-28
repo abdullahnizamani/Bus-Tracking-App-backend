@@ -1,198 +1,284 @@
 {% extends "main.html" %}
 {% load static %}
-{% block title %}Live Map Dashboard{% endblock title %}
+{% block title %}Live Map Dashboard | BusNaama{% endblock title %}
 
 {% block head %}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
 
 <style>
+  /* 1. Map Foundation: Rock solid, will not collapse */
+  #map {
+    height: 100vh;
+    width: 100%;
+    z-index: 1;
+  }
   
-  /* Map fills main content */
-  #map { height: 100%; width: 100%; }
-
-  /* Floating badge for buses online */
-  .buses-online-badge {
-    position: absolute;
-    top: 1rem;
-    left: 1rem;
-    background: rgba(255,255,255,0.95);
-    padding: 0.5rem 1rem;
-    border-radius: 9999px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-    font-weight: bold;
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+  /* Make Leaflet popups inherit your app's font and be bulletproof */
+  .leaflet-container { font-family: inherit; }
+  .leaflet-popup-content-wrapper, .leaflet-popup-tip {
+    background-color: #ffffff !important;
+    color: #1f2937 !important;
+    border-radius: 0.75rem;
+    border: 1px solid rgba(0,0,0,0.1) !important;
   }
 
-  /* Right-side panel inside main */
+  /* Dark mode override for popups */
+  [data-theme="dark"] .leaflet-popup-content-wrapper,
+  [data-theme="dark"] .leaflet-popup-tip {
+    background-color: #1d232a !important;
+    color: #a6adbb !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+  }
+
+  /* 2. Theme-Aware Glass Panels (BULLETPROOF RGB FIX) */
+  .theme-glass {
+    background-color: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Dark mode override for glass panels */
+  [data-theme="dark"] .theme-glass {
+    background-color: rgba(29, 35, 42, 0.85); /* Exact match to DaisyUI dark base-100 */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  /* 3. Floating UI Overlays */
+  .buses-online-badge {
+    position: absolute;
+    top: 1.5rem;
+    left: 1.5rem;
+    z-index: 1000;
+    padding: 0.5rem 1.25rem;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
   .right-panel {
     position: absolute;
-    top: 1rem;
-    right: 1rem;
-    width: 300px;
-    max-height: calc(100% - 2rem);
-    background: rgba(255,255,255,0.95);
-    backdrop-filter: blur(8px);
-    box-shadow: -5px 0 20px rgba(0,0,0,0.2);
+    top: 1.5rem;
+    right: 1.5rem;
+    width: 320px;
+    max-height: calc(100vh - 3rem);
     z-index: 1000;
     display: flex;
     flex-direction: column;
-    padding: 1rem;
-    border-radius: 0.75rem;
+    padding: 1.25rem;
+    border-radius: 1rem;
   }
 
-  /* Scrollable bus list */
-  .bus-list { overflow-y: auto; flex: 1; margin-top: 1rem; }
+  .bus-list {
+    overflow-y: auto;
+    flex: 1;
+    margin-top: 1rem;
+    padding-right: 0.5rem;
+  }
 
-  /* Floating action buttons */
+  /* Custom scrollbar for the bus list */
+  .bus-list::-webkit-scrollbar { width: 4px; }
+  .bus-list::-webkit-scrollbar-thumb { background: rgba(150, 150, 150, 0.3); border-radius: 4px; }
+
   .floating-btns {
     position: absolute;
-    bottom: 1.5rem;
+    bottom: 2rem;
     right: 1.5rem;
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.5rem;
     z-index: 1000;
   }
 
-
-/* This will only apply to mobile screens */
-@media (max-width: 768px) {
-  #sidebar {
-    z-index: 2000; /* Higher than the map */
+  /* 4. Mobile Responsiveness */
+  @media (max-width: 768px) {
+    .buses-online-badge {
+      top: 1rem;
+      left: 1rem;
+    }
+    .right-panel {
+      top: auto;
+      bottom: 1rem;
+      right: 1rem;
+      left: 1rem;
+      width: auto;
+      height: 35vh; 
+    }
+    .floating-btns {
+      bottom: calc(35vh + 2rem); 
+      right: 1rem;
+    }
   }
-
-
-  .buses-online-badge {
-    margin-top:100px;
-    margin-left:165px;
-  }
-
-}
-
 </style>
 {% endblock head %}
 
 {% block main %}
-<div class="relative w-full h-full">
+<div class="relative w-full h-[calc(100vh-64px)] overflow-hidden"> <div id="map"></div>
 
-  <!-- Map -->
-  <div id="map"></div>
-
-  <!-- Floating buses online badge -->
-  <div class="buses-online-badge ">
-    
-    <i class="fa-solid fa-bus text-primary"></i>
-    <span id="buses-online" id="busesActive">0 Buses Online</span>
+  <div class="buses-online-badge theme-glass">
+    <div class="relative flex h-3 w-3">
+      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+      <span class="relative inline-flex rounded-full h-3 w-3 bg-success"></span>
+    </div>
+    <span id="buses-online" class="font-bold text-base-content text-sm tracking-wide">0 Online</span>
   </div>
 
-  <!-- Right-side panel -->
-  <div class="right-panel">
-    <h2 class="text-lg font-bold ">Live Buses</h2>
-    <!-- Bus list -->
+  <div class="right-panel theme-glass">
+    <div class="flex items-center justify-between border-b border-base-content/10 pb-3">
+      <h2 class="text-lg font-extrabold text-base-content tracking-tight">Active Fleet</h2>
+      <i class="fa-solid fa-satellite-dish text-primary/70 animate-pulse"></i>
+    </div>
+    
     <div class="bus-list">
-      <ul id="bus-list-ul" class="menu menu-compact">
-
-      </ul>
+      <ul id="bus-list-ul" class="menu menu-compact p-0 m-0 w-full space-y-1">
+        </ul>
     </div>
   </div>
 
-  <!-- Floating buttons -->
   <div class="floating-btns">
-    <button id="center-btn" class="btn btn-circle btn-white shadow-lg hover:btn-primary" title="Center Map"><i class="fa-solid fa-location-crosshairs"></i></button>
-    <button id="zoom-in-btn" class="btn btn-circle btn-white shadow-lg hover:btn-primary" title="Zoom In"><i class="fa-solid fa-plus"></i></button>
-    <button id="zoom-out-btn" class="btn btn-circle btn-white shadow-lg hover:btn-primary" title="Zoom Out"><i class="fa-solid fa-minus"></i></button>
+    <button id="center-btn" class="btn btn-circle theme-glass hover:bg-primary hover:text-primary-content hover:border-primary border-transparent transition-all" title="Center Map">
+      <i class="fa-solid fa-location-crosshairs"></i>
+    </button>
+    <button id="zoom-in-btn" class="btn btn-circle theme-glass hover:bg-base-300 border-transparent transition-all" title="Zoom In">
+      <i class="fa-solid fa-plus"></i>
+    </button>
+    <button id="zoom-out-btn" class="btn btn-circle theme-glass hover:bg-base-300 border-transparent transition-all" title="Zoom Out">
+      <i class="fa-solid fa-minus"></i>
+    </button>
   </div>
 
 </div>
 
-
 <script type="module">
-import { onBusesUpdate } from "{% static 'js/firebase-buses.js' %}";
+  import { onBusesUpdate } from "{% static 'js/firebase-buses.js' %}";
 
-const map = L.map('map').setView([24.8607, 67.0011], 12);
+  // Base coordinates (e.g., Karachi center)
+  const MAP_CENTER = [24.8607, 67.0011];
+  const DEFAULT_ZOOM = 12;
 
-L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-  attribution: '&copy; <a href="https://www.openstreetmap.org/">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
-  subdomains: 'abcd',
-  maxZoom: 19
-}).addTo(map);
+  const map = L.map('map', {
+    zoomControl: false // We are using our custom zoom buttons
+  }).setView(MAP_CENTER, DEFAULT_ZOOM);
 
-const busIcon = L.icon({
-  iconUrl: '/media/bus.png',
-  iconSize: [35, 35],
-  iconAnchor: [17, 34],
-  popupAnchor: [0, -30]
-});
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap &copy; CARTO',
+    subdomains: 'abcd',
+    maxZoom: 19
+  }).addTo(map);
 
-const markers = {}; // Keep track of markers by bus ID
-
-onBusesUpdate((buses) => {
-  const busList = Object.entries(buses); // [ [id, bus], ... ]
-
-  // Count active buses
-  const activeBuses = busList.filter(([id, bus]) => bus.status?.isActive);
-  document.getElementById("buses-online").textContent = `${activeBuses.length} Buses Online`;
-
-  activeBuses.forEach(([id, bus]) => {
-    const { lat, lng } = bus.location || {};
-    if (!lat || !lng) return;
-
-    const speedKmh = bus.location.speed ?? 0; // default 0 if missing
-    const driver = bus.driver ?? "Unknown";
-
-    const popupContent = `
-      <div class="p-3 bg-base-100 rounded-xl shadow-lg w-60 font-sans">
-        <div class="flex items-center justify-between mb-2">
-          <h3 class="font-bold text-md">Bus ${id}</h3>
-          <i class="fa-solid fa-bus text-primary"></i>
-        </div>
-        <div class="text-sm space-y-1">
-          <p><span class="font-semibold">Driver:</span> ${driver.name}</p>
-          <p><span class="font-semibold">Speed:</span> ${speedKmh} km/h</p>
-          <p><span class="font-semibold">Status:</span> 
-            <span class="badge badge-success">Active</span>
-          </p>
-          <p><span class="font-semibold">Lat/Lon:</span> ${lat.toFixed(4)}, ${lng.toFixed(4)}</p>
-        </div>
-      </div>
-    `;
-
-    if (markers[id]) {
-      markers[id].setLatLng([lat, lng]);
-      markers[id].setPopupContent(popupContent);
-    } else {
-      const marker = L.marker([lat, lng], { icon: busIcon })
-        .addTo(map)
-        .bindPopup(popupContent, { className: 'shadow-lg' });
-      markers[id] = marker;
-    }
+  const busIcon = L.icon({
+    iconUrl: '/media/bus.png',
+    iconSize: [35, 35],
+    iconAnchor: [17, 34],
+    popupAnchor: [0, -30]
   });
 
-  // Remove markers for buses that are now inactive
-  Object.keys(markers).forEach(id => {
-    if (!buses[id]?.status?.isActive) {
-      map.removeLayer(markers[id]);
-      delete markers[id];
-    }
-  });
+  const markers = {};
 
+  // --- Wire up the Action Buttons ---
+  document.getElementById('zoom-in-btn').addEventListener('click', () => map.zoomIn());
+  document.getElementById('zoom-out-btn').addEventListener('click', () => map.zoomOut());
+  document.getElementById('center-btn').addEventListener('click', () => map.setView(MAP_CENTER, DEFAULT_ZOOM));
+
+  // --- Firebase Realtime Update Logic ---
+  onBusesUpdate((buses) => {
+    const busList = Object.entries(buses);
+    const activeBuses = busList.filter(([id, bus]) => bus.status?.isActive);
+    
+    // Update Badge Count
+    document.getElementById("buses-online").textContent = `${activeBuses.length} Online`;
+
+    activeBuses.forEach(([id, bus]) => {
+      const { lat, lng } = bus.location || {};
+      if (!lat || !lng) return;
+
+      const speedKmh = bus.location.speed ?? 0;
+      const driverName = bus.driver?.name ?? "Unknown Driver";
+
+      // Enhanced Popup UI
+      const popupContent = `
+        <div class="p-1 min-w-[200px] font-sans">
+          <div class="flex items-center justify-between mb-3 pb-2 border-b border-base-content/10">
+            <h3 class="font-extrabold text-base tracking-tight m-0">Bus ${id.replace("bus_", "")}</h3>
+            <span class="flex h-2 w-2 relative">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-success"></span>
+            </span>
+          </div>
+          <div class="text-sm space-y-2 text-base-content/80">
+            <div class="flex justify-between items-center"><span class="font-semibold text-base-content">Driver:</span> <span>${driverName}</span></div>
+            <div class="flex justify-between items-center"><span class="font-semibold text-base-content">Speed:</span> <span>${speedKmh} km/h</span></div>
+          </div>
+        </div>
+      `;
+
+      if (markers[id]) {
+        markers[id].setLatLng([lat, lng]);
+        if (markers[id].getPopup().isOpen()) {
+          markers[id].setPopupContent(popupContent);
+        } else {
+          markers[id]._popup.setContent(popupContent); // Update silently if closed
+        }
+      } else {
+        const marker = L.marker([lat, lng], { icon: busIcon })
+          .addTo(map)
+          .bindPopup(popupContent, { className: 'custom-popup' });
+        markers[id] = marker;
+      }
+    });
+
+    // Cleanup inactive markers
+    Object.keys(markers).forEach(id => {
+      if (!buses[id]?.status?.isActive) {
+        map.removeLayer(markers[id]);
+        delete markers[id];
+      }
+    });
+
+    // --- Update Side Panel List UI ---
     const busListUL = document.getElementById("bus-list-ul");
-  busListUL.innerHTML = ""; // clear old list
+    busListUL.innerHTML = "";
 
-  activeBuses.forEach(([id, bus]) => {
-    const driverName = bus.driver?.name ?? "Unknown";
+    if (activeBuses.length === 0) {
+      busListUL.innerHTML = `<li class="text-center text-xs text-base-content/50 py-4">No active vehicles</li>`;
+    }
 
-    const li = document.createElement("li");
-    li.innerHTML = `<a>Bus ${id} - ${driverName} </a>`;
-    busListUL.appendChild(li);
+    activeBuses.forEach(([id, bus]) => {
+      const driverName = bus.driver?.name ?? "Unknown";
+
+      const li = document.createElement("li");
+      const a = document.createElement("a");
+      a.className = "flex items-center gap-3 p-2 hover:bg-base-200/50 rounded-lg transition-colors cursor-pointer group";
+      
+      // Beautiful card-style list items
+      a.innerHTML = `
+        <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-content transition-colors shrink-0">
+          <i class="fa-solid fa-bus text-xs"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h4 class="font-bold text-sm text-base-content truncate">Bus ${id.replace("bus_", "")}</h4>
+          <p class="text-xs text-base-content/60 truncate">${driverName}</p>
+        </div>
+        <i class="fa-solid fa-chevron-right text-xs opacity-0 group-hover:opacity-50 transition-opacity"></i>
+      `;
+
+      a.addEventListener("click", (event) => {
+        event.preventDefault();
+        const { lat, lng } = bus.location || {};
+        if (!lat || !lng) return;
+
+        // Fly smoothly to the bus and open its popup
+        map.flyTo([lat, lng], 16, { duration: 1.5 });
+        setTimeout(() => { markers[id]?.openPopup(); }, 1500);
+      }); 
+
+      li.appendChild(a);
+      busListUL.appendChild(li);
+    });
   });
-});
 </script>
-
-
 {% endblock main %}

@@ -21,20 +21,33 @@ from users.models import Student, Driver
 from transport.serializers import BusSerializer
 from transport.models import Bus
 from django.contrib.auth.hashers import make_password, check_password
-
+from firebase_admin import auth as firebase_auth
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login_view(request):
     serializer = AuthTokenSerializer(data=request.data)
+
     serializer.is_valid(raise_exception=True)
 
     user = serializer.validated_data['user']
-    login(request, user)
-
+    developer_claims={}
+    if user.role =='student':
+        developer_claims={
+            'role':'student',
+            'bus_id':str(user.student.bus)
+        }
+    elif user.role == 'driver':
+        developer_claims={
+            'role':'driver',
+            'bud_id':str(user.driver.bus.id)
+        }
+    firebase_token = firebase_auth.create_custom_token(str(user.id), developer_claims)
+    firebase_token = firebase_token.decode('utf-8')
     token = AuthToken.objects.create(user)[1]
 
     return Response({
-        "token": token
+        "token": token,
+        "firebase_token":firebase_token
     })
 
 
@@ -112,7 +125,7 @@ def student_bus_view(request):
     """
     try:
         student = Student.objects.get(user=request.user)
-        bus = student.bus_id  # Assuming Student model has a ForeignKey to Bus
+        bus = student.bus  # Assuming Student model has a ForeignKey to Bus
         if not bus:
             return Response(None, status=status.HTTP_404_NOT_FOUND)
         serializer = BusSerializer(bus)
@@ -133,7 +146,7 @@ def driver_bus_view(request):
         driver = Driver.objects.get(user=request.user)
 
         # Step 2: get bus assigned to this driver
-        bus = Bus.objects.get(driver_id=driver)
+        bus = Bus.objects.get(driver=driver)
 
         serializer = BusSerializer(bus)
         return Response(serializer.data)

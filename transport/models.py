@@ -5,7 +5,7 @@ from django.db import models
 class Bus(models.Model):
     name = models.CharField(null=False, max_length=200)
     registration_number = models.CharField(null=False, max_length=200)
-    driver_id = models.OneToOneField('users.Driver', null=True, on_delete=models.SET_NULL, related_name='bus')
+    driver = models.OneToOneField('users.Driver', null=True, on_delete=models.SET_NULL, related_name='bus')
     capacity = models.IntegerField(null=True)
     is_active = models.BooleanField()
     

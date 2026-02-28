@@ -16,10 +16,10 @@
 </script>
     <link rel="icon" href="/media/favicon.ico" type="image/x-icon">
 
-
-
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+  const savedTheme = localStorage.getItem('bus-theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+</script>
 
 
 </head>
@@ -32,8 +32,7 @@
 
 {% block navbar %}
 {% if request.user.is_authenticated %}
- <!-- {% include 'navbar.html' %} -->
- {% include 'navbar2.html' %}
+ {% include 'navbar.html' %}
 
 {% endif %}
 {% endblock navbar %}
@@ -41,13 +40,14 @@
 <main class="flex-1 w-full p-4 min-h-screen">
     {% block main %}{% endblock main %}
 </main>
+{% if request.user.is_authenticated %}
 <script type="module">
-  import { onBusesUpdate } from "{% static 'js/firebase-buses.js' %}";
+  
+  import { onBusesUpdate, logoutFirebase } from "{% static 'js/firebase-buses.js' %}";
 
   onBusesUpdate((buses) => {
     const busList = Object.values(buses);
     const isAnyBusActive = busList.some(bus => bus.status?.isActive);
-
     const liveBadge = document.getElementById("liveStatus");
     if (liveBadge) {
       liveBadge.textContent = isAnyBusActive ? "LIVE" : "OFFLINE";
@@ -55,8 +55,69 @@
       liveBadge.classList.toggle("badge-error", !isAnyBusActive);
     }
   });
+const logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async (e) => {
+      e.preventDefault(); 
+      
+      await logoutFirebase(); 
+      
+      window.location.href = logoutBtn.href; 
+    });
+  }
+
+// const logoutBtn = document.getElementById('Logout');
+
+
+// logoutBtn.addEventListener('click', ()=>{
+//   console.log('Signing you out.')
+// const auth = getAuth();
+// signOut(auth).then(() => {
+//   // Sign-out successful.
+//   console.log('Sign-out successful.');
+// }).catch((error) => {
+//   // An error happened.
+//   console.log('Signout failed');
+// });
+// })
+
+
 </script>
 
-    
+    {% endif %}
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const themeCheckbox = document.getElementById('theme-checkbox');
+    const themeIcon = document.getElementById('theme-icon');
+    const htmlTag = document.documentElement;
+
+    if (themeCheckbox && themeIcon) {
+      const isDark = htmlTag.getAttribute('data-theme') === 'dark';
+      themeCheckbox.checked = isDark;
+      
+      if (isDark) {
+        themeIcon.setAttribute('data-lucide', 'sun');
+        lucide.createIcons(); 
+      }
+
+      themeCheckbox.addEventListener('change', (e) => {
+        const newTheme = e.target.checked ? 'dark' : 'light';
+        
+        htmlTag.setAttribute('data-theme', newTheme);
+        localStorage.setItem('bus-theme', newTheme);
+        
+        themeIcon.setAttribute('data-lucide', newTheme === 'dark' ? 'sun' : 'moon');
+        lucide.createIcons(); 
+      });
+
+      document.getElementById('theme-toggle-btn').addEventListener('click', (e) => {
+        if (e.target !== themeCheckbox) {
+          themeCheckbox.checked = !themeCheckbox.checked;
+          themeCheckbox.dispatchEvent(new Event('change'));
+        }
+      });
+    }
+  });
+</script>
 </body>
 </html>

@@ -16,9 +16,10 @@ import json
 from django.contrib.auth.hashers import make_password
 import csv
 from django.urls import reverse
-from firebase_admin import db
+from firebase_admin import db, auth as firebase_auth
 from BusCore import firebase  # ensures Firebase is initialized
-
+from .utils import log_system_activity
+from .models import ActivityLog
 # Create your views here.
 
 @login_required(login_url='login')
@@ -33,8 +34,18 @@ def index(request):
         for bus in buses.get('buses', {}).values()
         if bus.get('status', {}).get('isActive') is True
     )
-    ctx = {"student_count":student_count, "driver_count":driver_count, "buses_count":buses_count, 'buses':active_bus_count}
+    recent_activities = ActivityLog.objects.all().order_by('-created_at')[:10]
+    ctx = {"student_count":student_count, "driver_count":driver_count, "buses_count":buses_count, 'buses':active_bus_count, 'recent_activities': recent_activities}
     return render(request, 'index.html', ctx)
+
+
+@login_required
+def get_firebase_token(request):
+    try:
+        custom_token_bytes = firebase_auth.create_custom_token(str(request.user.id))
+        return JsonResponse({'token': custom_token_bytes.decode('utf-8')})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 def login_user(request):
     if request.method == 'POST':
@@ -47,8 +58,9 @@ def login_user(request):
         if not user.is_staff:
             messages.error(request, "You are not authorized to access this area")
             return redirect('login')
-        user = authenticate(request, username=username, password=password)
         login(request, user)
+        custom_token_bytes = firebase_auth.create_custom_token(str(user.id))
+        request.session['firebase_token'] = custom_token_bytes.decode('utf-8')
         messages.success(request, "Login successful")
         return redirect('dashboard')
     return render(request, 'login.html')
@@ -60,8 +72,19 @@ def logout_user(request):
 
 @login_required(login_url='login')
 def buses(request):
-    busObj = Bus.objects.all()
-    return render(request, 'buses.html', {"busObj":busObj})
+    buses = Bus.objects.all()
+    search = request.GET.get('search', '')
+
+    if search:
+        if search.isdigit():
+            buses = buses.filter(Q(name__icontains=search) | Q(id=search))
+        else:
+            buses = buses.filter(name__icontains=search)
+    page_number = request.GET.get('page', 1)
+    page_size = request.GET.get('page_size', 10)
+    p = Paginator(buses, page_size)
+    page_obj = p.get_page(page_number)
+    return render(request, 'buses.html', {"page_obj":page_obj})
 
 @login_required(login_url='login')
 def add_bus(request):
@@ -76,6 +99,12 @@ def add_bus(request):
                     path=json.loads(route_json),
                     route_str=route_str
                 )
+            log_system_activity(
+            user=request.user,
+            action="Bus Registered",
+            description=f"Vehicle '{form.cleaned_data['name']}' was added to the fleet.",
+            level="info"
+        )
         return redirect('buses')
     else:
         form = BusForm()
@@ -93,6 +122,12 @@ def delete_bus(request):
             buses_deleted = details.get('transport.Bus', 0)
             if buses_deleted >= 1:
                 messages.success(request, f'Successfully deleted {buses_deleted} buses')
+                log_system_activity(
+                user=request.user,
+                action="Bus Deleted",
+                description=f"{buses_deleted} buses deleted",
+                level="warning"
+            )
                 return redirect('buses')
             else:
                 messages.error(request, "there was an error deleting the buses")
@@ -140,7 +175,7 @@ def add_student(request):
     if request.method == 'POST':
         form_type = request.POST.get('form_type')
 
-        if form_type == 'add_role_form':
+        if form_type == 'add_single_form':
 
             form = UserForm(request.POST, request.FILES)
             student_id = request.POST.get('Student_id')
@@ -155,6 +190,12 @@ def add_student(request):
                     bus = Bus.objects.get(id=bus_id)
                     Student.objects.create(student_id=student_id, bus=bus, user=user)
                     messages.success(request, 'Successfully created student')
+                    log_system_activity(
+                    user=request.user,
+                    action="Student Added",
+                    description=f"Student {user.first_name} with id {user.id} created",
+                    level="info"
+                )
                     return redirect('students')
                 except Bus.DoesNotExist:
                     messages.error(request, f"Bus with ID {bus_id} does not exist.")
@@ -208,7 +249,7 @@ def add_student(request):
                 bus = bus_mapping[bus_id]
                 student = Student(
                     student_id=student_id,
-                    bus_id=bus,
+                    bus=bus,
                     user=user_profile
                 )
                 students_to_create.append(student)
@@ -217,6 +258,12 @@ def add_student(request):
                     User.objects.bulk_create(users_to_create)
                     Student.objects.bulk_create(students_to_create)
                 messages.success(request, 'Successfully added students from CSV file.')
+                log_system_activity(
+                    user=request.user,
+                    action="Bulk Student Added",
+                    description=f"Bulk Students created",
+                    level="info"
+                )
                 return redirect('students')
             except IntegrityError as e:
                 messages.error(request, f"Error: Integrity issue - {str(e)}. Could not add some users.")
@@ -271,7 +318,7 @@ def add_driver(request):
     if request.method == 'POST':
         form_type = request.POST.get('form_type')
 
-        if form_type == 'add_role_form':
+        if form_type == 'add_single_form':
 
 
             form = UserForm(request.POST, request.FILES)
@@ -288,6 +335,12 @@ def add_driver(request):
                 user.save()  # Save the user to the database
                 Driver.objects.create(employee_id=driver_id, license_id=license_id, user=user)
                 messages.success(request, 'Successfully created driver')
+                log_system_activity(
+                    user=request.user,
+                    action="Driver Added",
+                    description=f"Driver {user.first_name} with id {user.id} created",
+                    level="info"
+                )
                 return redirect('drivers')
             else:
                 return redirect('add_students')
@@ -329,6 +382,12 @@ def add_driver(request):
                     User.objects.bulk_create(users_to_create)
                     Driver.objects.bulk_create(drivers_to_create)
                 messages.success(request, 'Successfully added drivers from CSV file.')
+                log_system_activity(
+                    user=request.user,
+                    action="Bulk Driver Added",
+                    description=f"Bulk Driver created",
+                    level="info"
+                )
                 return redirect('drivers')
             except IntegrityError as e:
                 messages.error(request, f"Error: Integrity issue - {str(e)}. Could not add some users.")
@@ -356,6 +415,12 @@ def bulk_delete(request):
     if data[0]>0:
         users_deleted = data[1]['users.User']
         if users_deleted>0:
+            log_system_activity(
+                    user=request.user,
+                    action="Bulk {role} deleted",
+                    description=f"{users_deleted} {role}s deleted",
+                    level="warning"
+                )
             messages.success(request, f'Successfully deleted {users_deleted} users')
             return redirect('students' if role == 'student' else 'drivers')
         else:
@@ -372,8 +437,14 @@ def bulk_assign(request):
     ids = request.POST.get('ids').split(',')
     bus_id = request.POST.get('bus_id')
     bus = Bus.objects.get(id=bus_id)
-    data = Student.objects.filter(student_id__in=ids).update(bus_id=bus)
+    data = Student.objects.filter(student_id__in=ids).update(bus=bus)
     if data > 0:
+            log_system_activity(
+                    user=request.user,
+                    action="Bulk Bus assigned",
+                    description=f"{bus_id} assigned to {ids}",
+                    level="info"
+                )
             messages.success(request, f'Successfully assigned the selected bus to {data} users')
             return redirect('students')        
     else:
@@ -387,8 +458,14 @@ def bulk_remove_bus(request):
     ids = request.POST.get('ids').split(',')
     role = request.POST.get('role')
     if role == 'student':
-        data = Student.objects.filter(student_id__in=ids).update(bus_id=None)
+        data = Student.objects.filter(student_id__in=ids).update(bus=None)
         if data>0:
+                log_system_activity(
+                    user=request.user,
+                    action="Bulk remove buses",
+                    description=f"Bulk removed buses assignments of {data} students",
+                    level="warning"
+                )
                 messages.success(request, f'Successfully removed bus assignments of {data} users')
                 return redirect('students' if role == 'student' else 'drivers')
         else:
@@ -397,9 +474,15 @@ def bulk_remove_bus(request):
     else:
         driver_ids = Driver.objects.filter(employee_id__in=ids).values_list('id', flat=True)
 
-        data = Bus.objects.filter(driver_id__in=driver_ids).update(driver_id=None)
+        data = Bus.objects.filter(driver_id__in=driver_ids).update(driver=None)
 
         if data>0:
+                log_system_activity(
+                    user=request.user,
+                    action="Bulk remove buses",
+                    description=f"Bulk removed buses assignments of {data} drivers",
+                    level="warning"
+                )
                 messages.success(request, f'Successfully removed bus assignments of {data} users')
                 return redirect('drivers')
         else:
@@ -430,6 +513,12 @@ def password_reset(request):
     id = request.POST.get('ids')
     user = User.objects.filter(username=id).update(password=make_password(id))
     if user>0:
+        log_system_activity(
+                    user=request.user,
+                    action="Password reset",
+                    description=f"password reset for {id}",
+                    level="info"
+                )
         messages.success(request, 'Successfully reset the password')
         return redirect('students' if role=='student' else 'drivers')
 
@@ -452,7 +541,12 @@ def edit_driver(request, id):
         if request.method == 'POST':
             form = UpdateUserForm(request.POST, request.FILES, instance=user)
             if form.is_valid():
-                
+                log_system_activity(
+                    user=request.user,
+                    action="Driver edit",
+                    description=f"Details edited for {id}",
+                    level="info"
+                )
                 form.save()
                 new_id = form.cleaned_data['username']
                 Driver.objects.filter(employee_id=id).update(employee_id=new_id)
@@ -479,7 +573,12 @@ def edit_student(request, id):
             form = UpdateUserForm(request.POST, request.FILES, instance=user)
             
             if form.is_valid():
-                
+                log_system_activity(
+                    user=request.user,
+                    action="Student edit",
+                    description=f"Details edited for {id}",
+                    level="info"
+                )
                 form.save()
                 new_id = form.cleaned_data['username']
                 Student.objects.filter(student_id=id).update(student_id=new_id)
@@ -508,7 +607,12 @@ def edit_bus(request, pk):
 
         if form.is_valid():
             bus = form.save()
-
+            log_system_activity(
+                    user=request.user,
+                    action="Bus edit",
+                    description=f"Details edited for {bus.id}",
+                    level="info"
+                )
             try:
                 route = bus.route
             except ObjectDoesNotExist:

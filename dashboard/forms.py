@@ -6,11 +6,11 @@ class BusForm(forms.ModelForm):
     
     class Meta:
         model = Bus
-        fields = ['name', 'registration_number', 'driver_id', 'capacity', 'is_active']
+        fields = ['name', 'registration_number', 'driver', 'capacity', 'is_active']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'input input-bordered w-full', 'placeholder': 'Enter bus name'}),
             'registration_number': forms.TextInput(attrs={'class': 'input input-bordered w-full', 'placeholder': 'Enter registration number'}),
-            'driver_id': forms.Select(attrs={'class': 'select select-bordered w-full'}),
+            'driver': forms.Select(attrs={'class': 'select select-bordered w-full'}),
             'capacity': forms.NumberInput(attrs={'class': 'input input-bordered w-full', 'placeholder': 'Enter capacity'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'toggle toggle-primary'}),
         }
@@ -75,9 +75,14 @@ class UpdateUserForm(forms.ModelForm):
                 'class': 'input input-bordered w-full pl-10',
                 'placeholder': '+92 3XX XXXXXXX',
             }),
+            # 'avatar': forms.FileInput(attrs={
+            #     'class': 'absolute inset-0 opacity-0 cursor-pointer',
+            #     'placeholder':''
+            # }),
             'avatar': forms.FileInput(attrs={
                 'class': 'absolute inset-0 opacity-0 cursor-pointer',
-                'placeholder':''
+                'id': 'avatarInput',
+                'accept': 'image/*'
             }),
         }
 

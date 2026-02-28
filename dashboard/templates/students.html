@@ -130,8 +130,8 @@
             </td>
             <td class="text-sm">{{student.user.email}}</td>
             <td>
-              {% if student.bus_id %}
-              <span class="badge badge-info">{{ student.bus_id.name }}</span>
+              {% if student.bus %}
+              <span class="badge badge-info">{{ student.bus.name }}</span>
               {% else %}
               <span class="text-gray-400">Unassigned</span>
               {% endif %}

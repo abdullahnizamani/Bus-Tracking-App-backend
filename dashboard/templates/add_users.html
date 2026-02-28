@@ -21,7 +21,7 @@
 
       <form method="post" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-2 gap-6">
         {% csrf_token %}
-  <input type="hidden" name="form_type" value="add_form">
+        <input type="hidden" name="form_type" value="add_single_form">
 
         <!-- {{role}} ID -->
         <div class="form-control">
@@ -30,44 +30,31 @@
               {{role}} ID <span class="text-error">*</span>
             </span>
           </label>
-          <input
-            type="text"
-            name="{{role}}_id"
-            placeholder="e.g. 22K-1234"
-            required
-            class="input input-bordered focus:input-primary w-full"
-          />
+          <input type="text" name="{{role}}_id" placeholder="e.g. 22K-1234" required
+            class="input input-bordered focus:input-primary w-full" />
         </div>
 
         <!-- Assigned Bus -->
-                  {% if role == 'Driver' %}
+        {% if role == 'Driver' %}
         <div class="form-control">
           <label class="label">
             <span class="label-text font-medium">
-             License ID <span class="text-error">*</span>
+              License ID <span class="text-error">*</span>
             </span>
           </label>
-          <input
-            type="text"
-            name="license_id"
-            placeholder="e.g. 22K-1234"
-            required
-            class="input input-bordered focus:input-primary w-full"
-          />
+          <input type="text" name="license_id" placeholder="e.g. 22K-1234" required
+            class="input input-bordered focus:input-primary w-full" />
         </div>
         {%else %}
-                <div class="form-control">
+        <div class="form-control">
           <label class="label">
             <span class="label-text font-medium">
               Assigned Bus <span class="text-error">*</span>
             </span>
           </label>
-          <select
-            name="bus"
-            required
-            class="select select-bordered focus:select-primary w-full">
+          <select name="bus" required class="select select-bordered focus:select-primary w-full">
             <option value="" disabled selected>Select bus</option>
-      {% for bus in buses %}
+            {% for bus in buses %}
             <option value="{{ bus.id }}">
               {{ bus.name }}
             </option>
@@ -84,9 +71,9 @@
           </label>
           {{ form.first_name }}
           {% if form.first_name.errors %}
-            <label class="label">
-              <span class="label-text-alt text-error">{{ form.first_name.errors|striptags }}</span>
-            </label>
+          <label class="label">
+            <span class="label-text-alt text-error">{{ form.first_name.errors|striptags }}</span>
+          </label>
           {% endif %}
         </div>
 
@@ -97,9 +84,9 @@
           </label>
           {{ form.last_name }}
           {% if form.last_name.errors %}
-            <label class="label">
-              <span class="label-text-alt text-error">{{ form.last_name.errors|striptags }}</span>
-            </label>
+          <label class="label">
+            <span class="label-text-alt text-error">{{ form.last_name.errors|striptags }}</span>
+          </label>
           {% endif %}
         </div>
 
@@ -110,9 +97,9 @@
           </label>
           {{ form.email }}
           {% if form.email.errors %}
-            <label class="label">
-              <span class="label-text-alt text-error">{{ form.email.errors|striptags }}</span>
-            </label>
+          <label class="label">
+            <span class="label-text-alt text-error">{{ form.email.errors|striptags }}</span>
+          </label>
           {% endif %}
         </div>
 
@@ -123,9 +110,9 @@
           </label>
           {{ form.phone }}
           {% if form.phone.errors %}
-            <label class="label">
-              <span class="label-text-alt text-error">{{ form.phone.errors|striptags }}</span>
-            </label>
+          <label class="label">
+            <span class="label-text-alt text-error">{{ form.phone.errors|striptags }}</span>
+          </label>
           {% endif %}
         </div>
 
@@ -139,9 +126,9 @@
           </label>
           {{ form.avatar }}
           {% if form.avatar.errors %}
-            <label class="label">
-              <span class="label-text-alt text-error">{{ form.avatar.errors|striptags }}</span>
-            </label>
+          <label class="label">
+            <span class="label-text-alt text-error">{{ form.avatar.errors|striptags }}</span>
+          </label>
           {% endif %}
         </div>
 
@@ -177,12 +164,8 @@
         {% csrf_token %}
 
         <!-- File Upload -->
-        <input
-          type="file"
-          name="csv_file"
-          accept=".csv"
-          class="file-input file-input-bordered file-input-primary w-full"
-        />
+        <input type="file" name="csv_file" accept=".csv"
+          class="file-input file-input-bordered file-input-primary w-full" />
 
         <!-- Actions -->
         <div class="flex flex-col sm:flex-row justify-end gap-3">

@@ -8,6 +8,7 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('', views.index, name='dashboard'),
     path('login/', views.login_user, name='login'),
+    path('api/firebase-token/', views.get_firebase_token, name='firebase-token'),
     path('logout/', views.logout_user, name='logout'),
     path('buses/', views.buses, name='buses'),
     path('add_bus/', views.add_bus, name='add_bus'),

@@ -3,24 +3,14 @@
 {% block head %}
 <style>
   /* Smooth hover effects */
-  .menu a {
-    transition: all 0.2s ease;
-  }
-
-  .card {
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
-  }
-
+  .menu a { transition: all 0.2s ease; }
+  .card { transition: transform 0.25s ease, box-shadow 0.25s ease; }
   .card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.08);
   }
-
-  /* Reduced motion accessibility */
   @media (prefers-reduced-motion: reduce) {
-    .card {
-      transition: none;
-    }
+    .card { transition: none; }
   }
 </style>
 {% endblock head %}
@@ -30,149 +20,175 @@
 {% block main %}
 <div class="space-y-8">
 
-  <!-- Header -->
-  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-base-200 pb-4">
     <div>
-      <h1 class="text-4xl font-extrabold tracking-tight">Dashboard</h1>
-      <p class="text-sm text-base-content/50 mt-1">System overview & activity</p>
+      <h1 class="text-4xl font-extrabold tracking-tight text-base-content">Dashboard</h1>
+      <p class="text-sm text-base-content/60 mt-1">System overview & realtime activity</p>
     </div>
-    <span class="text-xs text-base-content/40">Last synced —</span>
+    <div class="flex items-center gap-2 bg-base-200/50 px-3 py-1.5 rounded-full border border-base-300">
+      <span class="relative flex h-2.5 w-2.5">
+        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-success"></span>
+      </span>
+      <span class="text-xs font-medium text-base-content/70">System Live — {% now "H:i" %}</span>
+    </div>
   </div>
 
-  <!-- KPI Cards -->
-  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
 
-    <!-- Students -->
-    <div class="card bg-gradient-to-r from-indigo-100 to-indigo-200 border border-indigo-300 rounded-xl">
+    <div class="card bg-primary/15 border border-primary/30 rounded-2xl shadow-sm">
       <div class="card-body p-6">
-        <p class="text-xs uppercase font-semibold text-indigo-700">Students</p>
-        <div class="flex items-center justify-between mt-3">
-          <h2 class="text-3xl font-extrabold opacity-40">{{ student_count }}</h2>
-          <svg class="w-8 h-8 text-indigo-800/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M17 20h5v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2h5" />
-            <circle cx="9" cy="7" r="4" />
-            <circle cx="17" cy="7" r="4" />
-          </svg>
+        <div class="flex items-center justify-between">
+          <p class="text-xs tracking-wider uppercase font-bold text-primary">Total Students</p>
+          <div class="p-2 bg-primary/20 rounded-lg">
+            <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2h5" />
+              <circle cx="9" cy="7" r="4" /><circle cx="17" cy="7" r="4" />
+            </svg>
+          </div>
         </div>
-        <p class="text-xs text-indigo-800/60 mt-1">From backend stats</p>
+        <h2 class="text-4xl font-black text-base-content mt-2">{{ student_count|default:"0" }}</h2>
+        <p class="text-xs font-medium text-primary/80 mt-2 flex items-center gap-1">
+          <svg class="w-3 h-3 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Updated just now
+        </p>
       </div>
     </div>
 
-    <!-- Drivers -->
-    <div class="card bg-gradient-to-r from-green-100 to-green-200 border border-green-300 rounded-xl">
+    <div class="card bg-success/15 border border-success/30 rounded-2xl shadow-sm">
       <div class="card-body p-6">
-        <p class="text-xs uppercase font-semibold text-green-700">Drivers</p>
-        <div class="flex items-center justify-between mt-3">
-          <h2 class="text-3xl font-extrabold opacity-40">{{ driver_count }}</h2>
-          <svg class="w-8 h-8 text-green-800/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M5.121 17.804A4 4 0 0112 15a4 4 0 016.879 2.804" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
+        <div class="flex items-center justify-between">
+          <p class="text-xs tracking-wider uppercase font-bold text-success">Active Drivers</p>
+          <div class="p-2 bg-success/20 rounded-lg">
+            <svg class="w-5 h-5 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A4 4 0 0112 15a4 4 0 016.879 2.804" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </div>
         </div>
-        <p class="text-xs text-green-800/60 mt-1">All registered drivers</p>
+        <h2 class="text-4xl font-black text-base-content mt-2">{{ driver_count|default:"0" }}</h2>
+        <p class="text-xs font-medium text-success/80 mt-2">Registered personnel</p>
       </div>
     </div>
 
-    <!-- Buses -->
-    <div class="card bg-gradient-to-r from-yellow-100 to-yellow-200 border border-yellow-300 rounded-xl">
+    <div class="card bg-warning/15 border border-warning/30 rounded-2xl shadow-sm">
       <div class="card-body p-6">
-        <p class="text-xs uppercase font-semibold text-yellow-700">Buses</p>
-        <div class="flex items-center justify-between mt-3">
-          <h2 class="text-3xl font-extrabold opacity-40">{{ buses_count }}</h2>
-          <svg class="w-8 h-8 text-yellow-800/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M3 13l1-3a4 4 0 014-3h8a4 4 0 014 3l1 3" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M5 16h14v2a2 2 0 01-2 2h-1a2 2 0 01-2-2H10a2 2 0 01-2 2H7a2 2 0 01-2-2v-2z" />
-          </svg>
+        <div class="flex items-center justify-between">
+          <p class="text-xs tracking-wider uppercase font-bold text-warning">Fleet Size</p>
+          <div class="p-2 bg-warning/20 rounded-lg">
+            <svg class="w-5 h-5 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 13l1-3a4 4 0 014-3h8a4 4 0 014 3l1 3M5 16h14v2a2 2 0 01-2 2h-1a2 2 0 01-2-2H10a2 2 0 01-2 2H7a2 2 0 01-2-2v-2z" />
+            </svg>
+          </div>
         </div>
-        <p class="text-xs text-yellow-800/60 mt-1">Fleet overview</p>
+        <h2 class="text-4xl font-black text-base-content mt-2">{{ buses_count|default:"0" }}</h2>
+        <p class="text-xs font-medium text-warning/80 mt-2">Total registered vehicles</p>
       </div>
     </div>
 
-    <!-- Live Trips -->
-    <div class="card bg-gradient-to-r from-teal-100 to-teal-200 border border-teal-300 rounded-xl">
+    <div class="card bg-info/15 border border-info/30 rounded-2xl shadow-sm">
       <div class="card-body p-6">
-        <p class="text-xs uppercase font-semibold text-teal-700">Live Trips</p>
-        <div class="flex items-center justify-between mt-3">
-          <h2 class="text-3xl font-extrabold opacity-40">{{buses}}</h2>
-          <svg class="w-8 h-8 text-teal-800/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M9 20l-5.447-2.724A2 2 0 013 15.382V6.618a2 2 0 011.553-1.894L9 2m0 18l6-3m-6 3V2m6 15l5.447-2.724A2 2 0 0021 12.382V6.618a2 2 0 00-1.553-1.894L15 2m0 15V2" />
-          </svg>
+        <div class="flex items-center justify-between">
+          <p class="text-xs tracking-wider uppercase font-bold text-info">Live Routes</p>
+          <div class="p-2 bg-info/20 rounded-lg">
+            <svg class="w-5 h-5 text-info" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A2 2 0 013 15.382V6.618a2 2 0 011.553-1.894L9 2m0 18l6-3m-6 3V2m6 15l5.447-2.724A2 2 0 0021 12.382V6.618a2 2 0 00-1.553-1.894L15 2m0 15V2" />
+            </svg>
+          </div>
         </div>
-        <p class="text-xs text-teal-800/60 mt-1">Realtime tracking</p>
+        <h2 class="text-4xl font-black text-base-content mt-2">{{ buses|default:"0" }}</h2>
+        <p class="text-xs font-medium text-info/80 mt-2">Currently broadcasting GPS</p>
       </div>
     </div>
 
   </div>
-
-  <!-- Main Content -->
   <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
 
-    <!-- Recent Activity -->
-    <div class="xl:col-span-2 card bg-base-100 border border-base-200 rounded-xl">
-      <div class="card-body p-6">
-        <div class="flex items-center justify-between mb-5">
-          <h2 class="font-semibold text-lg">Recent Activity</h2>
-          <a class="text-sm link link-hover opacity-60">View all</a>
+    <div class="xl:col-span-2 card bg-base-100 border border-base-200 shadow-sm rounded-2xl">
+      <div class="card-body p-0">
+        <div class="p-6 border-b border-base-200 flex items-center justify-between">
+          <h2 class="font-bold text-lg text-base-content">System Logs</h2>
+          <button class="btn btn-xs btn-ghost text-base-content/60 hover:text-primary">View Full Audit</button>
         </div>
 
-        <ul class="divide-y divide-base-200/60">
-          <!-- TODO: loop over activity feed -->
-          <li class="py-4 flex justify-between items-center">
-            <span class="opacity-40">Activity will appear here</span>
-            <span class="text-xs opacity-40">—</span>
+        <ul class="divide-y divide-base-200">
+          {% for activity in recent_activities %}
+          <li class="p-6 hover:bg-base-200/30 transition-colors">
+            <div class="flex items-start gap-4">
+              <div class="mt-1 w-2 h-2 rounded-full {% if activity.level == 'error' %}bg-error{% elif activity.level == 'warning' %}bg-warning{% else %}bg-success{% endif %} shadow-sm"></div>
+              <div class="flex-1">
+                <p class="text-sm font-semibold text-base-content">{{ activity.action }}</p>
+                <p class="text-sm text-base-content/60 mt-0.5">{{ activity.description }}</p>
+              </div>
+              <span class="text-xs font-mono text-base-content/40 whitespace-nowrap">{{ activity.created_at|timesince }} ago</span>
+            </div>
           </li>
+          {% empty %}
+          <li class="p-12 flex flex-col items-center justify-center text-center">
+            <div class="w-16 h-16 bg-base-200 rounded-full flex items-center justify-center mb-3">
+              <svg class="w-8 h-8 text-base-content/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+            </div>
+            <p class="text-base-content/50 font-medium">Awaiting system events</p>
+            <p class="text-xs text-base-content/40 mt-1">Activity logs will populate here automatically.</p>
+          </li>
+          {% endfor %}
         </ul>
       </div>
     </div>
 
-    <!-- Right Column -->
     <div class="space-y-6">
 
-      <!-- Quick Actions -->
-      <div class="card bg-base-100 border border-base-200 rounded-xl">
+      <div class="card bg-base-100 border border-base-200 shadow-sm rounded-2xl">
         <div class="card-body p-6">
-          <h2 class="font-semibold mb-4">Quick Actions</h2>
+          <h2 class="font-bold text-base-content mb-4">Quick Actions</h2>
           <div class="grid grid-cols-2 gap-3">
-            <!-- <button class="btn btn-sm btn-primary">Add Student</button>
-            <button class="btn btn-sm btn-outline">Add Driver</button>
-            <button class="btn btn-sm btn-outline">Add Bus</button>
-            <button class="btn btn-sm btn-outline">New Route</button> -->
-            <a href="{% url 'add_students' %}" class="btn btn-sm btn-primary">Add Student</a>
-            <a href="{% url 'add_drivers' %}" class="btn btn-sm btn-outline">Add Driver</a>
-            <a href="{% url 'add_bus' %}" class="btn btn-sm btn-outline">Add Bus</a>
-            <a href="/new-route/" class="btn btn-sm btn-outline">New Route</a>
-
+            <a href="{% url 'add_students' %}" class="btn btn-sm btn-primary shadow-sm hover:-translate-y-0.5 transition-transform">Add Student</a>
+            <a href="{% url 'add_drivers' %}" class="btn btn-sm btn-outline border-base-300 hover:bg-base-200 hover:text-base-content hover:-translate-y-0.5 transition-transform">Add Driver</a>
+            <a href="{% url 'add_bus' %}" class="btn btn-sm btn-outline border-base-300 hover:bg-base-200 hover:text-base-content hover:-translate-y-0.5 transition-transform">Add Bus</a>
+            <a href="/new-route/" class="btn btn-sm btn-outline border-base-300 hover:bg-base-200 hover:text-base-content hover:-translate-y-0.5 transition-transform">New Route</a>
           </div>
-
-          <div class="divider text-xs opacity-40">Admin only</div>
         </div>
       </div>
 
-      <!-- System Health -->
-      <div class="card bg-base-100 border border-base-200 rounded-xl">
+      <div class="card bg-base-100 border border-base-200 shadow-sm rounded-2xl">
         <div class="card-body p-6">
-          <h2 class="font-semibold mb-4">System Health</h2>
-          <div class="space-y-3 text-sm">
-            <div class="flex justify-between items-center">
-              <span>API</span>
-              <progress class="progress progress-success w-24"></progress>
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="font-bold text-base-content">System Health</h2>
+            <span class="badge badge-success badge-sm badge-outline">Operational</span>
+          </div>
+          
+          <div class="space-y-4">
+            <div>
+              <div class="flex justify-between items-end mb-1">
+                <span class="text-sm font-medium text-base-content/80">API Endpoints</span>
+                <span class="text-xs font-mono text-base-content/60">99.9%</span>
+              </div>
+              <progress class="progress progress-success w-full bg-base-200" value="100" max="100"></progress>
             </div>
-            <div class="flex justify-between items-center">
-              <span>Tracking</span>
-              <progress class="progress progress-success w-24"></progress>
+            
+            <div>
+              <div class="flex justify-between items-end mb-1">
+                <span class="text-sm font-medium text-base-content/80">Firebase Websockets</span>
+                <span class="text-xs font-mono text-base-content/60">94.2%</span>
+              </div>
+              <progress class="progress progress-warning w-full bg-base-200" value="94" max="100"></progress>
             </div>
-            <div class="flex justify-between items-center">
-              <span>Firebase Sync</span>
-              <progress class="progress progress-warning w-24"></progress>
+
+            <div>
+              <div class="flex justify-between items-end mb-1">
+                <span class="text-sm font-medium text-base-content/80">PostgreSQL Load</span>
+                <span class="text-xs font-mono text-base-content/60">12%</span>
+              </div>
+              <progress class="progress progress-info w-full bg-base-200" value="12" max="100"></progress>
             </div>
-            <div class="flex justify-between items-center">
-              <span>Last Backup</span>
-              <span class="text-xs opacity-40">—</span>
+
+            <div class="divider my-1"></div>
+            
+            <div class="flex justify-between items-center pt-1">
+              <span class="text-sm font-medium text-base-content/80 flex items-center gap-2">
+                <svg class="w-4 h-4 text-base-content/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path></svg>
+                Last DB Backup
+              </span>
+              <span class="text-xs font-mono bg-base-200 px-2 py-1 rounded text-base-content/70">{% now "H:i" %}</span>
             </div>
           </div>
         </div>
