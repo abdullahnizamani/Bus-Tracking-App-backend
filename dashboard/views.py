@@ -27,7 +27,7 @@ def index(request):
     student_count = User.objects.filter(role="student").count()
     driver_count = User.objects.filter(role="driver").count()
     buses_count = Bus.objects.count()
-    ref = db.reference() 
+    ref = db.reference('buses') 
     buses = ref.get() or {}
     active_bus_count = sum(
         1
@@ -405,7 +405,9 @@ def add_driver(request):
 @require_POST
 def bulk_delete(request):
     
-    ids = request.POST.get('ids').split(',')
+    ids_str = request.POST.get('ids', '')
+    ids = ids_str.split(',') if ids_str else []
+
     role = request.POST.get('role')
     data = User.objects.filter(username__in=ids, is_superuser=False).delete()
     # print(data)
