@@ -6,3 +6,4 @@ output.css
 media/profiles/
 serviceAccountKey.json
 .deployment
+.env
