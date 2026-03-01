@@ -5,14 +5,14 @@ import { getAuth, signInWithCustomToken, onAuthStateChanged, signOut } from "htt
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDEh1_Pk58sTtlgknCyEnUAzTn7UgDWBE8",
-  authDomain: "busapp-7d45f.firebaseapp.com",
-  databaseURL: "https://busapp-7d45f-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "busapp-7d45f",
-  storageBucket: "busapp-7d45f.firebasestorage.app",
-  messagingSenderId: "940862242108",
-  appId: "1:940862242108:web:e673630f39652c5ce8b239",
-  measurementId: "G-CV7D1S329V"
+  apiKey: "",
+  authDomain: "",
+  databaseURL: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: "",
+  measurementId: ""
 };
 const app = initializeApp(firebaseConfig);
 
