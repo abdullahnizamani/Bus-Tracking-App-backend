@@ -20,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 env = environ.Env()
 environ.Env.read_env(str(BASE_DIR / '.env'))
-DEBUG = env('DEBUG', default=False)
+DEBUG = env.bool('DEBUG', default=False)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
