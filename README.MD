@@ -1,11 +1,11 @@
 
-# 🚌 BusNaama Backend | Real-Time Transit Management System
+# 🚌 Bus Safar Backend | Real-Time Transit Management System
 
 [![Django](https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=white)](https://www.djangoproject.com/)
 [![Firebase](https://img.shields.io/badge/firebase-ffca28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com/)
 [![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 
-The official backend and administrative dashboard for **BusNaama**, a real-time university bus tracking and fleet management application. This system serves as the central hub for managing students, drivers, and transit routes, while seamlessly integrating with Firebase to orchestrate live GPS tracking.
+The official backend and administrative dashboard for **Bus Safar**, a real-time university bus tracking and fleet management application. This system serves as the central hub for managing students, drivers, and transit routes, while seamlessly integrating with Firebase to orchestrate live GPS tracking.
 
 ## 🌟 Key Features
 
