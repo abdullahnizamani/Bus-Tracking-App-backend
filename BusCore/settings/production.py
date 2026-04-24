@@ -34,6 +34,7 @@ STORAGES = {
             "default_acl": "public-read",
             "file_overwrite": False,
             "location": "static",  
+            "querystring_auth": False, 
         },
     },
 }
