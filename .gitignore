@@ -2,7 +2,6 @@
 __pycache__/
 db.sqlite3
 tailwindcss.exe
-output.css
 media/profiles/
 serviceAccountKey.json
 .deployment
