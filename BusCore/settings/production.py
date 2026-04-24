@@ -34,8 +34,8 @@ STORAGES = {
             "default_acl": "public-read",
             "file_overwrite": False,
             "location": "static",  
-            "querystring_auth": False, 
-            "custom_domain": f"{env('SUPABASE_PROJECT_REF')}.supabase.co/storage/v1/object/public/static-bucket",
+            "querystring_auth": False,
+            "custom_domain": f"{env('SUPABASE_PROJECT_REF')}.supabase.co/storage/v1/object/public/avatars-bucket",
 
         },
     },
