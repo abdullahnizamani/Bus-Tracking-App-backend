@@ -7,3 +7,4 @@ media/profiles/
 serviceAccountKey.json
 .deployment
 .env
+tailwindcss
