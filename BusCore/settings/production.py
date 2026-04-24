@@ -21,6 +21,8 @@ STORAGES = {
             "endpoint_url": env("SUPABASE_ENDPOINT_URL"),
             "default_acl": "public-read",
             "file_overwrite": False,
+            "querystring_auth": False,
+            "custom_domain": f"{env('SUPABASE_PROJECT_REF')}.supabase.co/storage/v1/object/public/avatars-bucket",
         },
     },
     "staticfiles": {
@@ -34,8 +36,8 @@ STORAGES = {
             "default_acl": "public-read",
             "file_overwrite": False,
             "location": "static",  
-            "querystring_auth": False,
-            "custom_domain": f"{env('SUPABASE_PROJECT_REF')}.supabase.co/storage/v1/object/public/avatars-bucket",
+            "querystring_auth": False, 
+            "custom_domain": f"{env('SUPABASE_PROJECT_REF')}.supabase.co/storage/v1/object/public/static-bucket",
 
         },
     },
