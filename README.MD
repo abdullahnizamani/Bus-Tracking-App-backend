@@ -7,7 +7,7 @@
 [![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/)
 [![Live](https://img.shields.io/badge/Live%20Dashboard-%E2%86%92-brightgreen?style=for-the-badge)](https://bus-tracking-app-zeta.vercel.app)
 
-The backend and admin dashboard for **Bus Safar** — a real-time university bus tracking system. This repo covers the Django REST API, role-based admin panel, and Firebase integration layer. The mobile app (React Native + Expo) lives [here](https://github.com/abdullahnizamani/Bus-Safar).
+The backend and admin dashboard for **Bus Safar** — a real-time university bus tracking system. This repo covers the Django REST API, role-based admin panel, and Firebase integration layer. The mobile app (React Native + Expo) lives [here](https://github.com/abdullahnizamani/Bus-Tracking-App).
 
 ---
 
