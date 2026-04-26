@@ -1,156 +1,145 @@
-
-# 🚌 Bus Safar Backend | Real-Time Transit Management System
+# 🚌 Bus Safar — Backend & Admin Dashboard
 
 [![Django](https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=white)](https://www.djangoproject.com/)
-[![Firebase](https://img.shields.io/badge/firebase-ffca28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com/)
+[![Firebase](https://img.shields.io/badge/Firebase-ffca28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com/)
 [![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
+[![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/)
+[![Live](https://img.shields.io/badge/Live%20Dashboard-%E2%86%92-brightgreen?style=for-the-badge)](https://bus-tracking-app-zeta.vercel.app)
 
-The official backend and administrative dashboard for **Bus Safar**, a real-time university bus tracking and fleet management application. This system serves as the central hub for managing students, drivers, and transit routes, while seamlessly integrating with Firebase to orchestrate live GPS tracking.
-
-## 🌟 Key Features
-
-### 👨‍💻 Administrative Dashboard
-- **Fleet Management:** Register, update, and delete buses. Assign specific routes with Mapbox geospatial coordinates.
-- **Role-Based Access Control (RBAC):** Secure models and views differentiating between `Admin`, `Driver`, and `Student` accounts.
-- **Bulk Onboarding (CSV):** Instantly upload and assign hundreds of students or drivers to their respective buses using CSV file parsing.
-- **System Activity Logging:** Track all administrative actions (e.g., "Bus Registered", "Bulk Students Added") with a built-in audit trail.
-
-### 📡 Real-Time Tracking Architecture
-- **Firebase Bridge:** Acts as the source of truth for trip statuses. When an admin or driver initiates a trip, Django securely updates the Firebase Realtime Database.
-- **Live Map Dashboard:** An integrated web view for admins to monitor the live locations of all active buses fleet-wide.
-- **Custom Token Authentication:** Generates secure Firebase Custom Tokens for authenticated Django users to restrict database access.
+The backend and admin dashboard for **Bus Safar** — a real-time university bus tracking system. This repo covers the Django REST API, role-based admin panel, and Firebase integration layer. The mobile app (React Native + Expo) lives [here](https://github.com/abdullahnizamani/Bus-Safar).
 
 ---
 
-## 🏗️ System Architecture
+## Architecture
 
+Two databases, one system. **PostgreSQL** handles persistent relational data — users, buses, routes, assignments. **Firebase Realtime DB** handles high-frequency ephemeral data — live GPS coordinates, speed, trip status — bypassing Django entirely for low latency. The backend bridges them: authenticating users, minting scoped Firebase tokens, and keeping the admin dashboard in sync.
 
+```
+Admin Dashboard ──→ Django Backend ──→ PostgreSQL
+                          │
+                          └─────────→ Firebase RTDB ←── Mobile App
+                                                        (Driver/Student)
+```
 
-The backend utilizes a **Dual-Stream Data Model** to ensure scalability and low latency:
-1. **PostgreSQL/SQLite (Django ORM):** Handles persistent, relational data (User profiles, Bus assignments, Route waypoints, Passwords).
-2. **Firebase Realtime DB:** Handles high-frequency, ephemeral data (Live GPS coordinates, Speed, Active trip status).
----
-
-## 🗄️ Core Database Schema
-
-- **`users.User`**: Custom user model extending Django's `AbstractUser`, handling role-based access (Student, Driver, Admin).
-- **`users.Student`**: Linked 1-to-1 with `User`; contains `student_id`, home coordinates, and assigned `bus`.
-- **`users.Driver`**: Linked 1-to-1 with `User`; contains `employee_id` and `license_id`.
-- **`transport.Bus`**: Contains registration details, capacity, active status, and is strictly linked to a `Driver`.
-- **`transport.Route`**: Linked 1-to-1 with `Bus`; stores the GeoJSON/Coordinate `path` and string description for the transit route.
-- **`dashboard.ActivityLog`**: System audit trail tracking administrative actions, user events, and severity levels.
+Static assets and avatars are served from **Supabase Storage** via S3-compatible endpoints, keeping Vercel's serverless functions stateless.
 
 ---
-## 🚀 Getting Started
 
-### 1. Prerequisites
-- Python 3.8+
-- pip & virtualenv
-- A Firebase Project (with Realtime Database enabled)
+## Features
 
-### 2. Local Installation
+**🖥️ Admin Dashboard**
+- Fleet management — register, update, and delete buses with Mapbox route assignment
+- Role-based access across `Admin`, `Driver`, and `Student` accounts
+- Bulk CSV onboarding for students and drivers
+- Activity log with severity levels tracking all admin actions
+- Live fleet map — monitor all active buses in real time
+
+**📡 REST API**
+- Knox token authentication
+- Firebase Custom Token generation scoped by role (`student`, `driver`)
+- Bus, route, and profile endpoints consumed by the mobile app
+- Bus status PATCH endpoint — the trigger point when a driver goes live
+
+---
+
+## Stack
+
+| | |
+|---|---|
+| Framework | Django 6.0 + Django REST Framework |
+| Auth | Knox Tokens + Firebase Custom Tokens |
+| Realtime | Firebase Realtime Database |
+| Storage | Supabase (S3-compatible) |
+| Deployment | Vercel |
+| Database | PostgreSQL (prod) · SQLite (dev) |
+
+---
+
+## Getting Started
+
+**Prerequisites:** Python 3.10+, a Firebase project with Realtime DB enabled, a Supabase project with `avatars-bucket` and `static-bucket`.
 
 ```bash
-# Clone the repository
-git clone [https://github.com/abdullahnizamani/Bus-Tracking-App-backend.git](https://github.com/abdullahnizamani/Bus-Tracking-App-backend.git)
-
-# Navigate into the project directory
+git clone https://github.com/abdullahnizamani/Bus-Tracking-App-backend.git
 cd Bus-Tracking-App-backend
 
-# Create and activate a virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows use: venv\Scripts\activate
+python -m venv .venv
+source .venv/bin/activate       # Windows: .venv\Scripts\activate
 
-# Install Python dependencies
 pip install -r requirements.txt
-
 ```
 
-### 3. Environment Variables
+### Environment Variables
 
-Create a `.env` file in the root directory for your Django secrets. **Never commit this file to version control.**
+Create `.env` in the project root. **Never commit this file.**
 
 ```env
-# Django Settings
-SECRET_KEY=your_django_secret_key
+# Django
+DJANGO_SETTINGS_MODULE=BusCore.settings.development
+SECRET_KEY=your_secret_key
 DEBUG=True
-ALLOWED_HOSTS=[*]
+ALLOWED_HOSTS=localhost,127.0.0.1
 
+# Database (production only)
+DATABASE_URL=your_postgres_url
+
+# Supabase
+SUPABASE_ACCESS_KEY_ID=your_access_key
+SUPABASE_SECRET_ACCESS_KEY=your_secret_key
+SUPABASE_BUCKET_NAME=avatars-bucket
+SUPABASE_STATIC_BUCKET_NAME=static-bucket
+SUPABASE_REGION=your_region
+SUPABASE_ENDPOINT_URL=https://<project-ref>.supabase.co/storage/v1/s3
+SUPABASE_PROJECT_REF=your_project_ref
+
+# Firebase Admin (base64 encoded service account JSON)
+FIREBASE_SERVICE_ACCOUNT=your_base64_service_account
 ```
 
-*(Note: You will also need your `serviceAccountKey.json` from Firebase Admin placed in BusCore or configured via env variables so Django can communicate with Firebase securely).*
-
-### 4. Frontend Firebase Setup
-
-To enable the live map in the Django admin dashboard, you must provide your Firebase client configuration.
-
-Open your `firebase-buses.js` file (located in your static files folder) and update the `firebaseConfig` object with your details:
-
-```javascript
-const firebaseConfig = {
-  apiKey: "your_api_key_here",
-  authDomain: "your_project.firebaseapp.com",
-  databaseURL: "https://your_project-default-rtdb.firebaseio.com",
-  projectId: "your_project_id",
-  storageBucket: "your_project.appspot.com",
-  messagingSenderId: "your_sender_id",
-  appId: "your_app_id"
-};
-
-```
-
-### 5. Database Setup & Run
+> For local dev, drop `serviceAccountKey.json` in the project root — it gets picked up automatically when running with development settings.
 
 ```bash
-# Apply database migrations
-python manage.py makemigrations
 python manage.py migrate
-
-# Create a superuser for the admin panel
 python manage.py createsuperuser
-
-# Run the development server
-python manage.py runserver
-
+DJANGO_SETTINGS_MODULE=BusCore.settings.development python manage.py runserver
 ```
 
-Visit `http://127.0.0.1:8000` to access the login screen.
+Visit `http://127.0.0.1:8000/dashboard/login`
 
 ---
 
-## 📂 CSV Bulk Upload Format
+## Database Schema
 
-To use the bulk upload feature for Students or Drivers, ensure your CSV headers match the following format exactly. The system skips the first row assuming it is a header.
-
-**For Students:**
-`first_name, last_name, email, phone, student_id, bus_id`
-
-**For Drivers:**
-`first_name, last_name, email, phone, employee_id, license_id`
-
----
-
-## 🛡️ Security
-
-* **API Key Restrictions:** Since the Firebase configuration is stored directly in the frontend JavaScript, ensure your `apiKey` is restricted via the Google Cloud Console to only accept requests from your authorized domains (e.g., your production URL and localhost).
-* **Route Protection:** All dashboard views are strictly protected by `@login_required` and staff-level authorization checks.
-* **Password Hashing:** Handled securely via Django's `make_password` and standard PBKDF2 algorithms.
+| Model | Description |
+|---|---|
+| `users.User` | Custom `AbstractUser` with role field (`admin`, `driver`, `student`) |
+| `users.Student` | 1-to-1 with User — `student_id`, home coordinates, assigned bus |
+| `users.Driver` | 1-to-1 with User — `employee_id`, `license_id` |
+| `transport.Bus` | Registration, capacity, active status, linked driver |
+| `transport.Route` | 1-to-1 with Bus — GeoJSON path and route description |
+| `dashboard.ActivityLog` | Audit trail with severity levels |
 
 ---
 
-## 🤝 Contributing
+## CSV Upload Format
 
-Contributions, issues, and feature requests are welcome!
+First row is treated as a header and skipped.
 
-1. Fork the project.
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`).
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`).
-4. Push to the branch (`git push origin feature/AmazingFeature`).
-5. Open a Pull Request.
+```
+# Students
+first_name, last_name, email, phone, student_id, bus_id
+
+# Drivers  
+first_name, last_name, email, phone, employee_id, license_id
+```
 
 ---
 
-## 📄 License
+## License
 
-This project is open-source and available under the [MIT License](https://www.google.com/search?q=LICENSE).
+This project is licensed under the **MIT License** — you're free to use, modify, and distribute it. See the [LICENSE](LICENSE) file for details.
 
+---
+
+Built by [Abdullah Nizamani](https://github.com/abdullahnizamani)
